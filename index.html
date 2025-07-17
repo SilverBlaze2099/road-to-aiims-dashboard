@@ -317,6 +317,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+
         // --- Firebase Configuration ---
         // Replace the values below with your actual Firebase project details
         const firebaseConfig = {
@@ -337,6 +338,9 @@
         let utTestData = [], bbctsData = [], quarterlyData = [], missionNeetData = [];
         let chapterStatus = {};
         let physicsGoalsData = [], chemistryGoalsData = [], biologyGoalsData = [];
+
+        // Fix: Declare appId using the Firebase config projectId
+        const appId = firebaseConfig.projectId;
 
         // NEW: Data stores for Daily Routine Redesign
         let dailyLogEntries = []; // All entries for all days
@@ -722,6 +726,13 @@
     drSubTabButtons.upcoming.addEventListener('click', () => activateDRSubTab('upcoming'));
     drSubTabButtons.backlogs.addEventListener('click', () => activateDRSubTab('backlogs'));
     drSubTabButtons.completed.addEventListener('click', () => activateDRSubTab('completed'));
+
+    // Add listeners for main tab buttons
+    document.getElementById('tabRegularData').addEventListener('click', () => activateMainTab('regularData'));
+    document.getElementById('tabTests').addEventListener('click', () => activateMainTab('tests'));
+    document.getElementById('tabAnalytics').addEventListener('click', () => activateMainTab('analytics'));
+    document.getElementById('tabGoals').addEventListener('click', () => activateMainTab('goals'));
+    document.getElementById('tabAISuggestions').addEventListener('click', () => activateMainTab('aiSuggestions'));
 };
 
 // Fix: Define activateMainTab to prevent ReferenceError
