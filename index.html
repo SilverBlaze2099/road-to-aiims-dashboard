@@ -38,14 +38,14 @@
             min-height: 150px;
             resize: vertical;
         }
-        input[type="text"], input[type="number"], input[type="date"], textarea {
+        input[type="text"], input[type="number"], input[type="date"], textarea, select { /* Added select */
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
             padding: 0.75rem 1rem;
             border-radius: 0.5rem;
             transition: all 0.2s ease-in-out;
         }
-        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus {
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus, select:focus { /* Added select */
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
@@ -293,6 +293,37 @@
             <button id="tabAnalytics" class="tab-button">Analytics & Graphs</button>
             <button id="tabGoals" class="tab-button">Goals</button> <!-- Renamed from Syllabus -->
             <button id="tabAISuggestions" class="tab-button">AI Suggestions</button>
+        </div>
+
+        <!-- Authentication Section (New) -->
+        <div id="auth-section" class="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200 mt-8">
+            <h2 id="auth-header" class="text-2xl font-bold text-gray-800 mb-4 text-center">Login / Sign Up</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="flex flex-col">
+                    <label for="authEmail" class="text-lg font-medium text-gray-700">Email:</label>
+                    <input type="email" id="authEmail" class="w-full" placeholder="your.email@example.com">
+                </div>
+                <div class="flex flex-col">
+                    <label for="authPassword" class="text-lg font-medium text-gray-700">Password:</label>
+                    <input type="password" id="authPassword" class="w-full" placeholder="********">
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button id="signInButton" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75">
+                    Sign In
+                </button>
+                <button id="signUpButton" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75">
+                    Sign Up
+                </button>
+                <button id="signOutButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 hidden">
+                    Sign Out
+                </button>
+            </div>
+            <p id="authStatusMessage" class="text-center text-sm mt-3 text-gray-600"></p>
+        </div>
+
+        <div class="text-sm text-gray-500 mt-4 text-center">
+            Logged in as: <span id="userIdDisplay" class="font-mono text-gray-600">Not Logged In</span>
         </div>
 
         <!-- Tab Content Areas -->
@@ -740,16 +771,12 @@
             </div>
 
         </div>
-
-        <div class="text-sm text-gray-500 mt-4 text-center">
-            User ID: <span id="userIdDisplay" class="font-mono text-gray-600">Loading...</span>
-        </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase instances and user ID
@@ -820,9 +847,19 @@
             { key: 'neetprep', name: 'NEETprep' }
         ];
 
-        // Get app ID and Firebase config from the environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyA29MM64OLCgKRfnl8tr-I39IIoBE-RLFM",
+          authDomain: "my-neet-tracker-app.firebaseapp.com",
+          projectId: "my-neet-tracker-app",
+          storageBucket: "my-neet-tracker-app.firebasestorage.app",
+          messagingSenderId: "931350823768",
+          appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d"
+        };
+
+        // Use your Firebase project ID as the appId for Firestore paths
+        const appId = firebaseConfig.projectId;
+
 
         // DOM Elements
         const tabButtons = {
@@ -986,6 +1023,16 @@
         const countdownTimerDisplay = document.getElementById('countdown-timer');
         const motivationalQuoteDisplay = document.getElementById('motivational-quote');
 
+        // DOM elements for authentication
+        const authEmailInput = document.getElementById('authEmail');
+        const authPasswordInput = document.getElementById('authPassword');
+        const signInButton = document.getElementById('signInButton');
+        const signUpButton = document.getElementById('signUpButton');
+        const signOutButton = document.getElementById('signOutButton');
+        const authStatusMessage = document.getElementById('authStatusMessage');
+        const authHeader = document.getElementById('auth-header');
+
+
         // --- Utility Functions ---
 
         /**
@@ -1046,6 +1093,96 @@
         // --- Firebase Initialization and Authentication ---
 
         /**
+         * Handles user sign-up with email and password.
+         */
+        async function handleSignUp() {
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+
+            if (!email || !password) {
+                authStatusMessage.textContent = "Please enter both email and password.";
+                showStatusMessage("Email and password required for sign up.", 'error');
+                return;
+            }
+            if (password.length < 6) {
+                authStatusMessage.textContent = "Password must be at least 6 characters long.";
+                showStatusMessage("Password too short.", 'error');
+                return;
+            }
+
+            authStatusMessage.textContent = "Signing up...";
+            showStatusMessage("Signing up...", 'info');
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                authStatusMessage.textContent = "Sign up successful! You are now logged in.";
+                showStatusMessage("Sign up successful!", 'success');
+                authEmailInput.value = '';
+                authPasswordInput.value = '';
+            } catch (error) {
+                console.error("Error during sign up:", error.code, error.message);
+                let errorMessage = "Sign up failed: " + error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "Email already in use. Try signing in or use a different email.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address.";
+                }
+                authStatusMessage.textContent = errorMessage;
+                showStatusMessage(errorMessage, 'error');
+            }
+        }
+
+        /**
+         * Handles user sign-in with email and password.
+         */
+        async function handleSignIn() {
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+
+            if (!email || !password) {
+                authStatusMessage.textContent = "Please enter both email and password.";
+                showStatusMessage("Email and password required for sign in.", 'error');
+                return;
+            }
+
+            authStatusMessage.textContent = "Signing in...";
+            showStatusMessage("Signing in...", 'info');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                authStatusMessage.textContent = "Sign in successful!";
+                showStatusMessage("Sign in successful!", 'success');
+                authEmailInput.value = '';
+                authPasswordInput.value = '';
+            } catch (error) {
+                console.error("Error during sign in:", error.code, error.message);
+                let errorMessage = "Sign in failed: " + error.message;
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Invalid email or password.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address.";
+                }
+                authStatusMessage.textContent = errorMessage;
+                showStatusMessage(errorMessage, 'error');
+            }
+        }
+
+        /**
+         * Handles user sign-out.
+         */
+        async function handleSignOut() {
+            authStatusMessage.textContent = "Signing out...";
+            showStatusMessage("Signing out...", 'info');
+            try {
+                await signOut(auth);
+                authStatusMessage.textContent = "Signed out successfully.";
+                showStatusMessage("Signed out successfully!", 'success');
+            } catch (error) {
+                console.error("Error during sign out:", error);
+                authStatusMessage.textContent = "Sign out failed: " + error.message;
+                showStatusMessage("Sign out failed.", 'error');
+            }
+        }
+
+        /**
          * Initializes Firebase and sets up authentication.
          * Sets up real-time listeners for data after authentication.
          */
@@ -1055,29 +1192,48 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Sign in anonymously or with custom token if available
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // Listen for auth state changes to get the user ID
+                // Listen for auth state changes to manage user ID and UI
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
+                        // User is signed in.
                         userId = user.uid;
-                        if (userIdDisplay) userIdDisplay.textContent = userId;
+                        if (userIdDisplay) userIdDisplay.textContent = user.email || user.uid; // Prefer email if available
+                        if (signInButton) signInButton.classList.add('hidden');
+                        if (signUpButton) signUpButton.classList.add('hidden');
+                        if (signOutButton) signOutButton.classList.remove('hidden');
+                        if (authHeader) authHeader.textContent = "Welcome!";
+                        if (authStatusMessage) authStatusMessage.textContent = "";
                         console.log("User authenticated:", userId);
-                        // Once authenticated, set up real-time listeners for all relevant data
-                        setupDataListeners();
-                        // Display quote after auth
+                        setupDataListeners(); // Setup listeners only when a user is confirmed
                         displayRandomQuoteAndSave();
                     } else {
-                        userId = crypto.randomUUID(); // Fallback for unauthenticated state
-                        if (userIdDisplay) userIdDisplay.textContent = userId + " (anonymous)";
-                        console.log("No user signed in, using random ID:", userId);
-                        setupDataListeners(); // Still attempt to set up listeners for anonymous user
-                        displayRandomQuoteAndSave();
+                        // User is signed out.
+                        userId = 'not-authenticated'; // Or a default guest ID if you want some guest features
+                        if (userIdDisplay) userIdDisplay.textContent = "Not Logged In";
+                        if (signInButton) signInButton.classList.remove('hidden');
+                        if (signUpButton) signUpButton.classList.remove('hidden');
+                        if (signOutButton) signOutButton.classList.add('hidden');
+                        if (authHeader) authHeader.textContent = "Login / Sign Up";
+                        if (authStatusMessage) authStatusMessage.textContent = "Please sign in or create an account to save your data.";
+                        console.log("No user signed in.");
+                        // Clear data displays if user logs out
+                        if (regularDataDisplay) regularDataDisplay.textContent = "Please log in to view your data.";
+                        if (testsDataDisplay) testsDataDisplay.textContent = "Please log in to view your data.";
+                        if (bbctsDataDisplay) bbctsDataDisplay.textContent = "Please log in to view your data.";
+                        if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "Please log in to view your data.";
+                        if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "Please log in to view your data.";
+                        // Clear charts too
+                        destroyChart(physicsChartUTInstance);
+                        destroyChart(chemistryChartUTInstance);
+                        destroyChart(biologyChartUTInstance);
+                        destroyChart(physicsChartBBCTSInstance);
+                        destroyChart(chemistryChartBBCTSInstance);
+                        destroyChart(biologyChartBBCTSInstance);
+                        destroyChart(physicsChartQuarterlyInstance);
+                        destroyChart(chemistryChartQuarterlyInstance);
+                        destroyChart(biologyChartQuarterlyInstance);
+                        destroyChart(missionNeetChartInstance);
+                        destroyChart(syllabusProgressionChartInstance);
                     }
                 });
 
@@ -1092,8 +1248,8 @@
          * Sets up real-time listeners for different data types in Firestore.
          */
         function setupDataListeners() {
-            if (!db || !userId || userId === 'loading') {
-                console.warn("Firestore not initialized or userId not available yet for data listeners.");
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                console.warn("Firestore not initialized or user not authenticated. Cannot set up data listeners.");
                 return;
             }
 
@@ -1291,9 +1447,8 @@
          * Saves the regular data from the input fields to Firestore.
          */
         async function saveRegularData() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save regular data.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your daily log data.", 'error');
                 return;
             }
 
@@ -1347,9 +1502,8 @@
          * Saves the Unit Test data from the input fields to Firestore.
          */
         async function saveUTData() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save UT data.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your Unit Test data.", 'error');
                 return;
             }
 
@@ -1396,9 +1550,8 @@
          * Saves the BBCTS data from the input fields to Firestore.
          */
         async function saveBBCTSData() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save BBCTS data.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your BB Classes Test Series data.", 'error');
                 return;
             }
 
@@ -1444,9 +1597,8 @@
          * Saves the Quarterly data from the input fields to Firestore.
          */
         async function saveQuarterlyData() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save Quarterly data.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your Quarterly Test data.", 'error');
                 return;
             }
 
@@ -1492,9 +1644,8 @@
          * Saves the Mission NEET data from the input fields to Firestore.
          */
         async function saveMissionNeetData() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save Mission NEET data.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your Mission NEET data.", 'error');
                 return;
             }
 
@@ -1534,9 +1685,8 @@
          * Saves the chapter status (isCompleted) to Firestore.
          */
         async function saveChapterStatus() {
-            if (!db || !userId || userId === 'loading') {
-                console.error("Firestore not initialized or userId not available. Cannot save chapter status.");
-                showStatusMessage("App not ready. Please wait a moment.", 'error');
+            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to save your chapter progress.", 'error');
                 return;
             }
             const docRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'chapterStatus');
@@ -1830,6 +1980,11 @@
 
 
                     completionButton.addEventListener('click', async (event) => {
+                        if (userId === 'not-authenticated') {
+                            showStatusMessage("Please sign in to mark chapters.", 'error');
+                            return;
+                        }
+
                         const btn = event.target;
                         const currentChapterKey = btn.dataset.chapterKey;
                         const currentSubCategoryKey = btn.dataset.subCategoryKey;
@@ -2246,6 +2401,11 @@
         // --- AI Performance Insights (New Gemini API Integration) ---
 
         async function getAIPerformanceInsights() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get AI performance insights.", 'error');
+                if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "Please sign in to get AI performance insights.";
+                return;
+            }
             if (utTestData.length === 0 && bbctsData.length === 0 && quarterlyData.length === 0 && missionNeetData.length === 0) {
                 showStatusMessage("No test data available for AI analysis. Please enter some data.", 'error');
                 if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "No test data available for AI analysis.";
@@ -2304,6 +2464,11 @@
 
         // --- AI Productivity Insights (New Gemini API Integration) ---
         async function getAIProductivityInsights() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get AI productivity insights.", 'error');
+                if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "Please sign in to get AI productivity insights.";
+                return;
+            }
             if (regularDataLogs.length === 0) {
                 showStatusMessage("No daily log data available for AI analysis. Please enter some logs.", 'error');
                 if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "No daily log data available for AI analysis.";
@@ -2364,6 +2529,11 @@
          * Fetches general AI suggestions from the Gemini API.
          */
         async function getAISuggestion() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get general AI suggestions.", 'error');
+                if (aiResponseDisplay) aiResponseDisplay.textContent = "Please sign in to get general AI suggestions.";
+                return;
+            }
             const prompt = aiPromptInput.value.trim();
             if (aiResponseDisplay) aiResponseDisplay.textContent = "Generating AI suggestions..."; // Show loading state immediately
             showStatusMessage("Getting AI suggestion...", 'info');
@@ -2415,6 +2585,11 @@
 
         // --- NEW: Concept Explainer Function ---
         async function explainConcept() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to use the Concept Explainer.", 'error');
+                if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Please sign in to use the Concept Explainer.";
+                return;
+            }
             const concept = conceptInput.value.trim();
             if (!concept) {
                 showStatusMessage("Please enter a concept or doubt to explain.", 'error');
@@ -2469,6 +2644,11 @@
 
         // --- NEW: Revision Topic Suggester Function ---
         async function suggestRevisionTopics() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get revision suggestions.", 'error');
+                if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Please sign in to get revision suggestions.";
+                return;
+            }
             if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Analyzing your data and generating revision suggestions...";
             if (suggestRevisionTopicsButton) suggestRevisionTopicsButton.disabled = true;
             showStatusMessage("Generating revision topics...", 'info');
@@ -2523,6 +2703,11 @@
 
         // --- NEW: Mock Test Question Generator Function ---
         async function generatePracticeQuestions() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to generate practice questions.", 'error');
+                if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Please sign in to generate practice questions.";
+                return;
+            }
             const subject = questionSubjectSelect.value;
             const topic = questionTopicInput.value.trim();
 
@@ -2618,22 +2803,30 @@
                 motivationalQuoteDisplay.textContent = `"${selectedQuote}"`;
             }
 
-
-            const today = new Date().toISOString().split('T')[0];
-            const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
-            try {
-                await setDoc(quoteStateDocRef, {
-                    lastQuoteDate: today,
-                    lastQuoteIndex: randomIndex
-                });
-                console.log("Quote state saved to Firestore.");
-            } catch (error) {
-                console.error("Error saving quote state:", error);
+            // Only attempt to save if authenticated
+            if (userId && userId !== 'loading' && userId !== 'not-authenticated') {
+                const today = new Date().toISOString().split('T')[0];
+                const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
+                try {
+                    await setDoc(quoteStateDocRef, {
+                        lastQuoteDate: today,
+                        lastQuoteIndex: randomIndex
+                    });
+                    console.log("Quote state saved to Firestore.");
+                } catch (error) {
+                    console.error("Error saving quote state:", error);
+                }
             }
         }
 
         // --- AI Goals Insights ---
         async function getAIGoalsInsights() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get AI progress insights.", 'error');
+                if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "Please sign in to get AI progress insights.";
+                return;
+            }
+
             let totalTasks = 0;
             let completedTasks = 0;
 
