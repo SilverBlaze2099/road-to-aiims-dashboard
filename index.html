@@ -634,11 +634,46 @@
         
 
 
-        // Stub for initializeFirebase to prevent ReferenceError
+        // Google Sign-In logic and UI show/hide
         function initializeFirebase() {
-            // If you have Firebase initialization logic, move it here.
-            // Currently, Firebase is initialized above with initializeApp(firebaseConfig).
-            // This stub prevents ReferenceError and allows the app to load.
+            // Already initialized above
+            // Add Google Sign-In button and logic
+            const loginPage = document.getElementById('login-page');
+            const mainAppContent = document.getElementById('main-app-content');
+            // Create Google Sign-In button if not present
+            if (!document.getElementById('googleSignInBtn')) {
+                const loginCard = document.createElement('div');
+                loginCard.id = 'login-card';
+                loginCard.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-4">Sign in to Road to AIIMS</h2>
+                    <button id="googleSignInBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg text-lg">Sign in with Google</button>
+                `;
+                loginPage.appendChild(loginCard);
+            }
+            const googleSignInBtn = document.getElementById('googleSignInBtn');
+            if (googleSignInBtn) {
+                googleSignInBtn.onclick = async () => {
+                    const provider = new GoogleAuthProvider();
+                    try {
+                        await signInWithPopup(auth, provider);
+                    } catch (err) {
+                        alert('Sign in failed: ' + err.message);
+                    }
+                };
+            }
+            // Listen for auth state changes
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    userEmail = user.email;
+                    loginPage.classList.add('hidden');
+                    mainAppContent.classList.remove('hidden');
+                    setupDataListeners();
+                } else {
+                    loginPage.classList.remove('hidden');
+                    mainAppContent.classList.add('hidden');
+                }
+            });
         }
 
         // Stub for loadGoalsData to prevent ReferenceError
