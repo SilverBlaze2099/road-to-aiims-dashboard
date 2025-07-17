@@ -632,6 +632,14 @@
         
         // ... (Your original window.onload, activateMainTab, etc. will need to be adapted)
         
+
+        // Stub for initializeFirebase to prevent ReferenceError
+        function initializeFirebase() {
+            // If you have Firebase initialization logic, move it here.
+            // Currently, Firebase is initialized above with initializeApp(firebaseConfig).
+            // This stub prevents ReferenceError and allows the app to load.
+        }
+
         window.onload = () => {
             initializeFirebase();
             loadGoalsData().then(() => {
