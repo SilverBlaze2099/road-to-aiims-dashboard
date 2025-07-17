@@ -219,7 +219,6 @@
             transform: translateY(-1px);
         }
         .chapter-button.completed {
-            background: linear-gradient(to right, #84cc16, #22c55e); /* Green gradient */
             color: #ffffff;
             border-color: #16a34a;
             box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);
@@ -228,6 +227,16 @@
         .chapter-button.completed:hover {
             opacity: 0.9;
         }
+        /* Gradient colors for chapter buttons based on level */
+        .color-level-0 { background: linear-gradient(to right, #22c55e, #10b981); } /* Beginner - Green */
+        .color-level-1 { background: linear-gradient(to right, #34d399, #10b981); }
+        .color-level-2 { background: linear-gradient(to right, #6ee7b7, #34d399); }
+        .color-level-3 { background: linear-gradient(to right, #a7f3d0, #6ee7b7); }
+        .color-level-4 { background: linear-gradient(to right, #facc15, #eab308); } /* Intermediate - Yellow */
+        .color-level-5 { background: linear-gradient(to right, #fbbf24, #f59e0b); }
+        .color-level-6 { background: linear-gradient(to right, #f97316, #ea580c); } /* Advanced - Orange */
+        .color-level-7 { background: linear-gradient(to right, #ef4444, #dc2626); } /* Master - Red */
+
         .chapter-header {
             font-weight: 700;
             color: #1e293b;
@@ -257,25 +266,100 @@
             font-weight: 500;
             color: #334155;
         }
-        /* Responsive grid for chapter headers and rows */
-        #physicsGoalsDisplay .chapter-header,
-        #chemistryGoalsDisplay .chapter-header {
-            grid-template-columns: 1fr repeat(7, minmax(0, 1fr)); /* 1 for name, 7 for sub-categories */
+        /* Dynamic grid template columns will be set by JS */
+
+        /* Full-screen login page styling */
+        #login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://placehold.co/1920x1080/60a5fa/ffffff?text=NEET+Success+Journey') no-repeat center center/cover; /* Placeholder image */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1;
         }
-        #biologyGoalsDisplay .chapter-header {
-            grid-template-columns: 1fr repeat(3, minmax(0, 1fr)); /* 1 for name, 3 for sub-categories */
+        #login-page.hidden {
+            opacity: 0;
+            pointer-events: none; /* Disable interactions when hidden */
         }
-        #physicsGoalsDisplay .chapter-row,
-        #chemistryGoalsDisplay .chapter-row {
-            grid-template-columns: 1fr repeat(7, minmax(0, 1fr));
+        #login-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            animation: fadeInScale 0.7s ease-out forwards;
         }
-        #biologyGoalsDisplay .chapter-row {
-            grid-template-columns: 1fr repeat(3, minmax(0, 1fr));
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        #login-quote {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: #4a5568;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        #google-signin-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background-color: #4285F4; /* Google Blue */
+            color: white;
+            font-weight: 600;
+            padding: 0.85rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 1.1rem;
+            width: 100%; /* Full width */
+        }
+        #google-signin-button:hover {
+            background-color: #357ae8;
+            transform: translateY(-2px);
+        }
+        #google-signin-button svg {
+            width: 1.5rem;
+            height: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Full-screen Login Page -->
+    <div id="login-page">
+        <div id="login-card">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-4">Road to AIIMS</h1>
+            <p id="login-quote" class="text-lg"></p>
+            <p class="text-gray-700 mb-6 text-xl font-semibold">Sign in to continue your journey!</p>
+
+            <button id="google-signin-button">
+                <svg viewBox="0 0 48 48" width="24px" height="24px">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.62-6.62C34.7 2.5 29.79 0 24 0 14.28 0 6.27 5.79 2.45 14.07l7.55 5.86C12.44 13.9 17.84 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.72 24c0-1.57-.13-3.07-.38-4.57H24v9.15h12.47c-.61 3.39-2.5 6.22-5.32 8.16l6.62 6.62c3.8-3.53 6.01-8.54 6.01-14.16z"/>
+                    <path fill="#FBBC04" d="M9.98 29.69c-.71-2.19-.71-4.49 0-6.68L2.45 17.14C-.82 20.57-.82 27.43 2.45 30.86l7.53-5.86z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.79l-6.62-6.62c-2.82 1.94-6.71 3.05-9.28 3.05-6.16 0-11.56-4.4-14.07-10.79l-7.55 5.86C6.27 42.21 14.28 48 24 48z"/>
+                    <path fill="none" d="M0 0h48v48H0z"/>
+                </svg>
+                Sign in with Google
+            </button>
+
+            <!-- Removed Email/Password section -->
+        </div>
+    </div>
+
+    <!-- Main App Content (Hidden until logged in) -->
+    <div id="main-app-content" class="container hidden">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Road to AIIMS</h1>
 
         <!-- NEET Countdown & Motivational Quote -->
@@ -295,35 +379,11 @@
             <button id="tabAISuggestions" class="tab-button">AI Suggestions</button>
         </div>
 
-        <!-- Authentication Section (New) -->
-        <div id="auth-section" class="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200 mt-8">
-            <h2 id="auth-header" class="text-2xl font-bold text-gray-800 mb-4 text-center">Login / Sign Up</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div class="flex flex-col">
-                    <label for="authEmail" class="text-lg font-medium text-gray-700">Email:</label>
-                    <input type="email" id="authEmail" class="w-full" placeholder="your.email@example.com">
-                </div>
-                <div class="flex flex-col">
-                    <label for="authPassword" class="text-lg font-medium text-gray-700">Password:</label>
-                    <input type="password" id="authPassword" class="w-full" placeholder="********">
-                </div>
-            </div>
-            <div class="flex flex-wrap justify-center gap-4">
-                <button id="signInButton" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75">
-                    Sign In
-                </button>
-                <button id="signUpButton" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75">
-                    Sign Up
-                </button>
-                <button id="signOutButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 hidden">
-                    Sign Out
-                </button>
-            </div>
-            <p id="authStatusMessage" class="text-center text-sm mt-3 text-gray-600"></p>
-        </div>
-
         <div class="text-sm text-gray-500 mt-4 text-center">
             Logged in as: <span id="userIdDisplay" class="font-mono text-gray-600">Not Logged In</span>
+            <button id="signOutButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 ml-4">
+                Sign Out
+            </button>
         </div>
 
         <!-- Tab Content Areas -->
@@ -659,6 +719,17 @@
                 <button id="goalsSubTabBiology" class="sub-tab-button">Biology Goals</button>
             </div>
 
+            <!-- Sub-category Visibility Controls -->
+            <div id="subcategory-controls" class="bg-gray-100 p-4 rounded-lg mb-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-700 mb-3">Select Study Levels to Display:</h3>
+                <div id="physicsChemistrySubcategoryCheckboxes" class="flex flex-wrap gap-x-6 gap-y-2 mb-4">
+                    <!-- Checkboxes will be dynamically generated here -->
+                </div>
+                <div id="biologySubcategoryCheckboxes" class="flex flex-wrap gap-x-6 gap-y-2 hidden">
+                    <!-- Checkboxes will be dynamically generated here -->
+                </div>
+            </div>
+
             <!-- Physics Goals Content -->
             <div id="goalsSubContentPhysics" class="sub-tab-content active">
                 <h3 class="text-xl font-semibold text-gray-800 mb-3">Physics Chapters:</h3>
@@ -707,6 +778,20 @@
                 <h3 class="text-lg font-semibold text-gray-800">AI General Suggestion:</h3>
                 <div id="aiResponseDisplay" class="data-display text-gray-700">
                     AI suggestions will appear here.
+                </div>
+            </div>
+
+            <hr class="my-8 border-t-2 border-gray-200"> <!-- Separator -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Next Study Plan ✨</h2>
+            <p class="text-gray-600 mb-4">Get AI-powered recommendations for your next topic, MCQs, and study time based on your progress and topper advice.</p>
+            <button id="getNextStudyPlanButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Generate Next Study Plan ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Study Plan:</h3>
+                <div id="nextStudyPlanDisplay" class="data-display text-gray-700">
+                    Your personalized study plan will appear here.
                 </div>
             </div>
 
@@ -770,13 +855,27 @@
                 </div>
             </div>
 
+            <hr class="my-8 border-t-2 border-gray-200"> <!-- Separator -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Weakness Identification & Targeted Practice ✨</h2>
+            <p class="text-gray-600 mb-4">Get AI-powered analysis of your weak areas and specific suggestions for improving them.</p>
+            <button id="identifyWeaknessesButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                Identify Weaknesses & Practice Tips ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Weakness Analysis:</h3>
+                <div id="weaknessAnalysisDisplay" class="data-display text-gray-700">
+                    AI analysis of your weak areas and practice tips will appear here.
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase instances and user ID
@@ -784,6 +883,7 @@
         let db;
         let auth;
         let userId = 'loading'; // Default until authenticated
+        let userEmail = 'Not Logged In'; // To display user's email
 
         // Global variables to store fetched data
         let utTestData = [];
@@ -791,8 +891,6 @@
         let quarterlyData = [];
         let missionNeetData = [];
         let regularDataLogs = []; // Array to store multiple daily logs
-        // chapterStatus now stores nested objects for sub-categories
-        // Example: chapterStatus = { 'physics-Chapter_Name': { 'bb_classes_module': { isCompleted: true, completionDate: '2023-01-01', aiMessage: 'Great job!' } } }
         let chapterStatus = {};
 
         // Parsed CSV data
@@ -814,66 +912,81 @@
         let biologyChartQuarterlyInstance = null;
 
         let missionNeetChartInstance = null;
-        let syllabusProgressionChartInstance = null; // New chart instance
+        let syllabusProgressionChartInstance = null;
 
-        // Motivational quotes for NEET aspirants
+        // Motivational quotes for login page and general use
         const motivationalQuotes = [
-            "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
             "The only way to do great work is to love what you do. - Steve Jobs",
             "Believe you can and you're halfway there. - Theodore Roosevelt",
             "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
             "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
             "The harder you work for something, the greater you'll feel when you achieve it.",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
             "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
             "The best way to predict the future is to create it. - Peter Drucker",
             "It always seems impossible until it's done. - Nelson Mandela",
-            "Strive for progress, not perfection."
+            "Strive for progress, not perfection.",
+            "Dream big, work hard, stay focused, and surround yourself with good people. - Unknown",
+            "The expert in anything was once a beginner. - Helen Hayes",
+            "Push yourself, because no one else is going to do it for you. - Unknown",
+            "Success is the sum of small efforts repeated day in and day out. - Robert Collier",
+            "It's not about perfect. It's about effort. And when you bring that effort every single day, that's where transformation happens. That's how change occurs. - Jillian Michaels"
         ];
 
-        // Define sub-categories for each subject
-        const physicsChemistrySubCategories = [
-            { key: 'bb_classes_module', name: 'BB Classes Module' },
-            { key: 'ncert_questions', name: 'NCERT Questions' },
-            { key: 'jee_mains_pyqs', name: 'JEE-Mains PYQs' },
-            { key: 'cengage', name: 'Cengage' },
-            { key: 'mtg', name: 'MTG' },
-            { key: 'disha', name: 'Disha' },
-            { key: 'errorless', name: 'Errorless' }
+        // Define sub-categories for each subject with their fixed order and levels
+        // Levels 0-7 for color gradient (Beginner to Master)
+        const physicsChemistrySubCategoriesOrdered = [
+            { key: 'bb_classes_module', name: 'BB Classes Module', level: 0 }, // Beginner
+            { key: 'disha', name: 'Disha', level: 2 },
+            { key: 'mtg', name: 'MTG', level: 3 },
+            { key: 'cengage', name: 'Cengage', level: 5 },
+            { key: 'errorless', name: 'Errorless', level: 7 }, // Master
+            { key: 'ncert_questions', name: 'NCERT Questions', level: 1 }, // Can be flexible
+            { key: 'jee_mains_pyqs', name: 'JEE-Mains PYQs', level: 4 }
         ];
 
-        const biologySubCategories = [
-            { key: 'mission_neet_module', name: 'Mission NEET Module' },
-            { key: 'ncert_fingertips', name: 'NCERT Fingertips' },
-            { key: 'neetprep', name: 'NEETprep' }
+        const biologySubCategoriesOrdered = [
+            { key: 'mission_neet_module', name: 'Mission NEET Module', level: 0 }, // Beginner
+            { key: 'ncert_fingertips', name: 'NCERT Fingertips', level: 3 },
+            { key: 'neetprep', name: 'NEETprep', level: 6 }
         ];
 
-        // Your web app's Firebase configuration
+        // Default selected sub-categories (all visible initially)
+        let selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+        let selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+
+        // Your actual Firebase configuration (replace with your copied config from Firebase console)
         const firebaseConfig = {
           apiKey: "AIzaSyA29MM64OLCgKRfnl8tr-I39IIoBE-RLFM",
           authDomain: "my-neet-tracker-app.firebaseapp.com",
           projectId: "my-neet-tracker-app",
           storageBucket: "my-neet-tracker-app.firebasestorage.app",
           messagingSenderId: "931350823768",
-          appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d"
+          appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d",
+          measurementId: "G-3WEYVYQRYE" // Include if provided by Firebase
         };
 
         // Use your Firebase project ID as the appId for Firestore paths
         const appId = firebaseConfig.projectId;
 
-
         // DOM Elements
+        const loginPage = document.getElementById('login-page');
+        const mainAppContent = document.getElementById('main-app-content');
+        const loginQuoteDisplay = document.getElementById('login-quote');
+        const googleSignInButton = document.getElementById('google-signin-button');
+
         const tabButtons = {
             regularData: document.getElementById('tabRegularData'),
             tests: document.getElementById('tabTests'),
             analytics: document.getElementById('tabAnalytics'),
-            goals: document.getElementById('tabGoals'), // Renamed
+            goals: document.getElementById('tabGoals'),
             aiSuggestions: document.getElementById('tabAISuggestions')
         };
         const tabContents = {
             regularData: document.getElementById('contentRegularData'),
             tests: document.getElementById('contentTests'),
             analytics: document.getElementById('contentAnalytics'),
-            goals: document.getElementById('contentGoals'), // Renamed
+            goals: document.getElementById('contentGoals'),
             aiSuggestions: document.getElementById('contentAISuggestions')
         };
 
@@ -895,17 +1008,17 @@
             bbcts: document.getElementById('subTabBBCTS'),
             quarterly: document.getElementById('subTabQuarterly'),
             missionNeetAnalytics: document.getElementById('subTabMissionNeetAnalytics'),
-            syllabusProgression: document.getElementById('subTabSyllabusProgression') // New button
+            syllabusProgression: document.getElementById('subTabSyllabusProgression')
         };
         const analyticsSubTabContents = {
             ut: document.getElementById('subContentUT'),
             bbcts: document.getElementById('subContentBBCTS'),
             quarterly: document.getElementById('subContentQuarterly'),
             missionNeetAnalytics: document.getElementById('subContentMissionNeetAnalytics'),
-            syllabusProgression: document.getElementById('subContentSyllabusProgression') // New content
+            syllabusProgression: document.getElementById('subContentSyllabusProgression')
         };
 
-        // Goals Sub-Tab Elements (formerly Syllabus)
+        // Goals Sub-Tab Elements
         const goalsSubTabButtons = {
             physics: document.getElementById('goalsSubTabPhysics'),
             chemistry: document.getElementById('goalsSubTabChemistry'),
@@ -921,6 +1034,9 @@
         const biologyGoalsDisplay = document.getElementById('biologyGoalsDisplay');
         const getAIGoalsInsightsButton = document.getElementById('getAIGoalsInsightsButton');
         const aiGoalsAnalysisDisplay = document.getElementById('aiGoalsAnalysisDisplay');
+        const subcategoryControls = document.getElementById('subcategory-controls');
+        const physicsChemistrySubcategoryCheckboxes = document.getElementById('physicsChemistrySubcategoryCheckboxes');
+        const biologySubcategoryCheckboxes = document.getElementById('biologySubcategoryCheckboxes');
 
 
         // UT Test Entry Fields
@@ -932,7 +1048,7 @@
         const utBiologyScoreInput = document.getElementById('utBiologyScore');
         const utMyMarksInput = document.getElementById('utMyMarks');
         const saveUTButton = document.getElementById('saveUTButton');
-        const testsDataDisplay = document.getElementById('testsDataDisplay'); // This now displays UT data
+        const testsDataDisplay = document.getElementById('testsDataDisplay');
 
         // BBCTS Test Entry Fields
         const bbctsDateInput = document.getElementById('bbctsDate');
@@ -999,38 +1115,40 @@
         const aiPerformanceAnalysisDisplay = document.getElementById('aiPerformanceAnalysisDisplay');
 
 
-        const getAISuggestionButton = document.getElementById('getAISuggestionButton'); // New button for general AI suggestion
+        const getAISuggestionButton = document.getElementById('getAISuggestionButton');
         const aiPromptInput = document.getElementById('aiPromptInput');
         const aiResponseDisplay = document.getElementById('aiResponseDisplay');
 
-        // New elements for Concept Explainer
+        // Next Study Plan elements
+        const getNextStudyPlanButton = document.getElementById('getNextStudyPlanButton');
+        const nextStudyPlanDisplay = document.getElementById('nextStudyPlanDisplay');
+
+        // Concept Explainer
         const conceptInput = document.getElementById('conceptInput');
         const explainConceptButton = document.getElementById('explainConceptButton');
         const conceptExplanationDisplay = document.getElementById('conceptExplanationDisplay');
 
-        // New elements for Revision Topic Suggester
+        // Revision Topic Suggester
         const suggestRevisionTopicsButton = document.getElementById('suggestRevisionTopicsButton');
         const revisionSuggestionsDisplay = document.getElementById('revisionSuggestionsDisplay');
 
-        // New elements for Mock Test Question Generator
+        // Mock Test Question Generator
         const questionSubjectSelect = document.getElementById('questionSubject');
         const questionTopicInput = document.getElementById('questionTopic');
         const generateQuestionsButton = document.getElementById('generateQuestionsButton');
         const generatedQuestionsDisplay = document.getElementById('generatedQuestionsDisplay');
+
+        // NEW: Weakness Identification & Targeted Practice
+        const identifyWeaknessesButton = document.getElementById('identifyWeaknessesButton');
+        const weaknessAnalysisDisplay = document.getElementById('weaknessAnalysisDisplay');
 
 
         const userIdDisplay = document.getElementById('userIdDisplay');
         const countdownTimerDisplay = document.getElementById('countdown-timer');
         const motivationalQuoteDisplay = document.getElementById('motivational-quote');
 
-        // DOM elements for authentication
-        const authEmailInput = document.getElementById('authEmail');
-        const authPasswordInput = document.getElementById('authPassword');
-        const signInButton = document.getElementById('signInButton');
-        const signUpButton = document.getElementById('signUpButton');
+        // Auth elements
         const signOutButton = document.getElementById('signOutButton');
-        const authStatusMessage = document.getElementById('authStatusMessage');
-        const authHeader = document.getElementById('auth-header');
 
 
         // --- Utility Functions ---
@@ -1093,98 +1211,42 @@
         // --- Firebase Initialization and Authentication ---
 
         /**
-         * Handles user sign-up with email and password.
-         */
-        async function handleSignUp() {
-            const email = authEmailInput.value;
-            const password = authPasswordInput.value;
-
-            if (!email || !password) {
-                authStatusMessage.textContent = "Please enter both email and password.";
-                showStatusMessage("Email and password required for sign up.", 'error');
-                return;
-            }
-            if (password.length < 6) {
-                authStatusMessage.textContent = "Password must be at least 6 characters long.";
-                showStatusMessage("Password too short.", 'error');
-                return;
-            }
-
-            authStatusMessage.textContent = "Signing up...";
-            showStatusMessage("Signing up...", 'info');
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                authStatusMessage.textContent = "Sign up successful! You are now logged in.";
-                showStatusMessage("Sign up successful!", 'success');
-                authEmailInput.value = '';
-                authPasswordInput.value = '';
-            } catch (error) {
-                console.error("Error during sign up:", error.code, error.message);
-                let errorMessage = "Sign up failed: " + error.message;
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "Email already in use. Try signing in or use a different email.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email address.";
-                }
-                authStatusMessage.textContent = errorMessage;
-                showStatusMessage(errorMessage, 'error');
-            }
-        }
-
-        /**
-         * Handles user sign-in with email and password.
-         */
-        async function handleSignIn() {
-            const email = authEmailInput.value;
-            const password = authPasswordInput.value;
-
-            if (!email || !password) {
-                authStatusMessage.textContent = "Please enter both email and password.";
-                showStatusMessage("Email and password required for sign in.", 'error');
-                return;
-            }
-
-            authStatusMessage.textContent = "Signing in...";
-            showStatusMessage("Signing in...", 'info');
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                authStatusMessage.textContent = "Sign in successful!";
-                showStatusMessage("Sign in successful!", 'success');
-                authEmailInput.value = '';
-                authPasswordInput.value = '';
-            } catch (error) {
-                console.error("Error during sign in:", error.code, error.message);
-                let errorMessage = "Sign in failed: " + error.message;
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = "Invalid email or password.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email address.";
-                }
-                authStatusMessage.textContent = errorMessage;
-                showStatusMessage(errorMessage, 'error');
-            }
-        }
-
-        /**
          * Handles user sign-out.
          */
         async function handleSignOut() {
-            authStatusMessage.textContent = "Signing out...";
             showStatusMessage("Signing out...", 'info');
             try {
                 await signOut(auth);
-                authStatusMessage.textContent = "Signed out successfully.";
                 showStatusMessage("Signed out successfully!", 'success');
             } catch (error) {
                 console.error("Error during sign out:", error);
-                authStatusMessage.textContent = "Sign out failed: " + error.message;
-                showStatusMessage("Sign out failed.", 'error');
+                showStatusMessage("Sign out failed: " + error.message, 'error');
             }
         }
 
         /**
-         * Initializes Firebase and sets up authentication.
-         * Sets up real-time listeners for data after authentication.
+         * Handles Google Sign-In.
+         */
+        async function handleGoogleSignIn() {
+            const provider = new GoogleAuthProvider();
+            showStatusMessage("Signing in with Google...", 'info');
+            try {
+                await signInWithPopup(auth, provider);
+                showStatusMessage("Google Sign-in successful!", 'success');
+            } catch (error) {
+                console.error("Error during Google sign-in:", error.code, error.message);
+                let errorMessage = "Google Sign-in failed.";
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = "Sign-in window closed.";
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    errorMessage = "Sign-in already in progress.";
+                }
+                showStatusMessage(errorMessage, 'error');
+            }
+        }
+
+        /**
+         * Initializes Firebase and sets up authentication listener.
          */
         async function initializeFirebase() {
             try {
@@ -1192,37 +1254,49 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Listen for auth state changes to manage user ID and UI
+                // Listen for auth state changes to manage user ID and UI visibility
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         // User is signed in.
                         userId = user.uid;
-                        if (userIdDisplay) userIdDisplay.textContent = user.email || user.uid; // Prefer email if available
-                        if (signInButton) signInButton.classList.add('hidden');
-                        if (signUpButton) signUpButton.classList.add('hidden');
-                        if (signOutButton) signOutButton.classList.remove('hidden');
-                        if (authHeader) authHeader.textContent = "Welcome!";
-                        if (authStatusMessage) authStatusMessage.textContent = "";
-                        console.log("User authenticated:", userId);
+                        userEmail = user.email || 'N/A'; // Get email or set N/A
+                        if (userIdDisplay) userIdDisplay.textContent = userEmail;
+
+                        // Hide login page, show main app content
+                        if (loginPage) loginPage.classList.add('hidden');
+                        if (mainAppContent) mainAppContent.classList.remove('hidden');
+
+                        console.log("User authenticated:", userId, userEmail);
                         setupDataListeners(); // Setup listeners only when a user is confirmed
-                        displayRandomQuoteAndSave();
+                        displayRandomQuoteAndSave(); // Update main app quote
                     } else {
                         // User is signed out.
-                        userId = 'not-authenticated'; // Or a default guest ID if you want some guest features
-                        if (userIdDisplay) userIdDisplay.textContent = "Not Logged In";
-                        if (signInButton) signInButton.classList.remove('hidden');
-                        if (signUpButton) signUpButton.classList.remove('hidden');
-                        if (signOutButton) signOutButton.classList.add('hidden');
-                        if (authHeader) authHeader.textContent = "Login / Sign Up";
-                        if (authStatusMessage) authStatusMessage.textContent = "Please sign in or create an account to save your data.";
+                        userId = 'not-authenticated';
+                        userEmail = 'Not Logged In';
+                        if (userIdDisplay) userIdDisplay.textContent = userEmail;
+
+                        // Show login page, hide main app content
+                        if (loginPage) loginPage.classList.remove('hidden');
+                        if (mainAppContent) mainAppContent.classList.add('hidden');
+
                         console.log("No user signed in.");
-                        // Clear data displays if user logs out
+                        // Clear data displays and charts if user logs out
                         if (regularDataDisplay) regularDataDisplay.textContent = "Please log in to view your data.";
                         if (testsDataDisplay) testsDataDisplay.textContent = "Please log in to view your data.";
                         if (bbctsDataDisplay) bbctsDataDisplay.textContent = "Please log in to view your data.";
                         if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "Please log in to view your data.";
                         if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "Please log in to view your data.";
-                        // Clear charts too
+                        if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "Please log in to view AI analysis.";
+                        if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "Please log in to view AI analysis.";
+                        if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "Please log in to view AI analysis.";
+                        if (aiResponseDisplay) aiResponseDisplay.textContent = "Please log in to get AI suggestions.";
+                        if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "Please log in to get your next study plan.";
+                        if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Please log in to get concept explanations.";
+                        if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Please log in to get revision suggestions.";
+                        if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Please log in to generate questions.";
+                        if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "Please log in to get weakness analysis.";
+
+
                         destroyChart(physicsChartUTInstance);
                         destroyChart(chemistryChartUTInstance);
                         destroyChart(biologyChartUTInstance);
@@ -1234,13 +1308,19 @@
                         destroyChart(biologyChartQuarterlyInstance);
                         destroyChart(missionNeetChartInstance);
                         destroyChart(syllabusProgressionChartInstance);
+
+                        // Set a random quote for the login page
+                        displayRandomLoginQuote();
                     }
                 });
 
             } catch (error) {
-                console.error("Error initializing Firebase or authenticating:", error);
+                console.error("Error initializing Firebase:", error);
                 showStatusMessage("Error loading app. Please check console for details.", 'error');
                 if (userIdDisplay) userIdDisplay.textContent = "Error";
+                // Still show login page even if Firebase init fails, but with error message
+                if (loginPage) loginPage.classList.remove('hidden');
+                if (mainAppContent) mainAppContent.classList.add('hidden');
             }
         }
 
@@ -1447,7 +1527,7 @@
          * Saves the regular data from the input fields to Firestore.
          */
         async function saveRegularData() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your daily log data.", 'error');
                 return;
             }
@@ -1502,7 +1582,7 @@
          * Saves the Unit Test data from the input fields to Firestore.
          */
         async function saveUTData() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your Unit Test data.", 'error');
                 return;
             }
@@ -1550,7 +1630,7 @@
          * Saves the BBCTS data from the input fields to Firestore.
          */
         async function saveBBCTSData() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your BB Classes Test Series data.", 'error');
                 return;
             }
@@ -1597,7 +1677,7 @@
          * Saves the Quarterly data from the input fields to Firestore.
          */
         async function saveQuarterlyData() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your Quarterly Test data.", 'error');
                 return;
             }
@@ -1644,7 +1724,7 @@
          * Saves the Mission NEET data from the input fields to Firestore.
          */
         async function saveMissionNeetData() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your Mission NEET data.", 'error');
                 return;
             }
@@ -1685,7 +1765,7 @@
          * Saves the chapter status (isCompleted) to Firestore.
          */
         async function saveChapterStatus() {
-            if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+            if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to save your chapter progress.", 'error');
                 return;
             }
@@ -1713,32 +1793,22 @@
         function activateMainTab(tabName) {
             // Deactivate all main tab buttons and content
             for (const key in tabButtons) {
-                if (tabButtons[key]) { // Add null check
+                if (tabButtons[key]) {
                     tabButtons[key].classList.remove('active');
-                } else {
-                    console.warn(`Tab button with key '${key}' not found.`);
                 }
             }
             for (const key in tabContents) {
-                if (tabContents[key]) { // Add null check
+                if (tabContents[key]) {
                     tabContents[key].classList.remove('active');
-                } else {
-                    console.warn(`Tab content with key '${key}' not found.`);
                 }
             }
 
             // Activate the selected main tab button and content
-            if (tabButtons[tabName]) { // Add null check
+            if (tabButtons[tabName]) {
                 tabButtons[tabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent tab button: ${tabName}`);
-                return; // Stop execution if main tab button is null
             }
-            if (tabContents[tabName]) { // Add null check
+            if (tabContents[tabName]) {
                 tabContents[tabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent tab content: ${tabName}`);
-                return; // Stop execution if main tab content is null
             }
 
             // Specific actions based on tab
@@ -1746,14 +1816,8 @@
                 activateTestEntrySubTab('ut');
             } else if (tabName === 'analytics') {
                 activateAnalyticsSubTab('ut'); // Default to Unit Test analytics
-            } else if (tabName === 'goals') { // New goals tab logic
+            } else if (tabName === 'goals') {
                 activateGoalsSubTab('physics'); // Default to Physics goals
-            } else if (tabName === 'aiSuggestions') {
-                // No automatic AI suggestion on tab switch, user clicks button
-                // aiPromptInput.value = ""; // Clear previous prompt
-                // aiResponseDisplay.textContent = "Ask for general suggestions...";
-                // conceptInput.value = "";
-                // conceptExplanationDisplay.textContent = "Your AI-powered concept explanation will appear here.";
             }
         }
 
@@ -1762,47 +1826,21 @@
          * @param {string} subTabName - The name of the sub-tab to activate (e.g., 'ut', 'bbcts').
          */
         function activateTestEntrySubTab(subTabName) {
-            // Deactivate all sub-tab buttons and content
             for (const key in testEntrySubTabButtons) {
-                if (testEntrySubTabButtons[key]) { // Add null check
-                    testEntrySubTabButtons[key].classList.remove('active');
-                } else {
-                    console.warn(`Test sub-tab button with key '${key}' not found.`);
-                }
+                if (testEntrySubTabButtons[key]) testEntrySubTabButtons[key].classList.remove('active');
             }
             for (const key in testEntrySubTabContents) {
-                if (testEntrySubTabContents[key]) { // Add null check
-                    testEntrySubTabContents[key].classList.remove('active');
-                } else {
-                    console.warn(`Test sub-tab content with key '${key}' not found.`);
-                }
+                if (testEntrySubTabContents[key]) testEntrySubTabContents[key].classList.remove('active');
             }
 
-            // Activate the selected sub-tab button and content
-            if (testEntrySubTabButtons[subTabName]) { // Add null check
-                testEntrySubTabButtons[subTabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent test sub-tab button: ${subTabName}`);
-                return;
-            }
-            if (testEntrySubTabContents[subTabName]) { // Add null check
-                testEntrySubTabContents[subTabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent test sub-tab content: ${subTabName}`);
-                return;
-            }
+            if (testEntrySubTabButtons[subTabName]) testEntrySubTabButtons[subTabName].classList.add('active');
+            if (testEntrySubTabContents[subTabName]) testEntrySubTabContents[subTabName].classList.add('active');
 
-            // Set default dates for new entries
             const today = new Date().toISOString().split('T')[0];
-            if (subTabName === 'ut') {
-                if (utDateInput) utDateInput.value = today;
-            } else if (subTabName === 'bbcts') {
-                if (bbctsDateInput) bbctsDateInput.value = today;
-            } else if (subTabName === 'quarterly') {
-                if (qtDateInput) qtDateInput.value = today;
-            } else if (subTabName === 'missionNeet') {
-                if (mnDateInput) mnDateInput.value = today;
-            }
+            if (subTabName === 'ut') { if (utDateInput) utDateInput.value = today; }
+            else if (subTabName === 'bbcts') { if (bbctsDateInput) bbctsDateInput.value = today; }
+            else if (subTabName === 'quarterly') { if (qtDateInput) qtDateInput.value = today; }
+            else if (subTabName === 'missionNeet') { if (mnDateInput) mnDateInput.value = today; }
         }
 
         /**
@@ -1810,37 +1848,16 @@
          * @param {string} subTabName - The name of the sub-tab to activate (e.g., 'ut', 'bbcts').
          */
         function activateAnalyticsSubTab(subTabName) {
-            // Deactivate all sub-tab buttons and content
             for (const key in analyticsSubTabButtons) {
-                if (analyticsSubTabButtons[key]) { // Add null check
-                    analyticsSubTabButtons[key].classList.remove('active');
-                } else {
-                    console.warn(`Analytics sub-tab button with key '${key}' not found.`);
-                }
+                if (analyticsSubTabButtons[key]) analyticsSubTabButtons[key].classList.remove('active');
             }
             for (const key in analyticsSubTabContents) {
-                if (analyticsSubTabContents[key]) { // Add null check
-                    analyticsSubTabContents[key].classList.remove('active');
-                } else {
-                    console.warn(`Analytics sub-tab content with key '${key}' not found.`);
-                }
+                if (analyticsSubTabContents[key]) analyticsSubTabContents[key].classList.remove('active');
             }
 
-            // Activate the selected sub-tab button and content
-            if (analyticsSubTabButtons[subTabName]) { // Add null check
-                analyticsSubTabButtons[subTabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent analytics sub-tab button: ${subTabName}`);
-                return;
-            }
-            if (analyticsSubTabContents[subTabName]) { // Add null check
-                analyticsSubTabContents[subTabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent analytics sub-tab content: ${subTabName}`);
-                return;
-            }
+            if (analyticsSubTabButtons[subTabName]) analyticsSubTabButtons[subTabName].classList.add('active');
+            if (analyticsSubTabContents[subTabName]) analyticsSubTabContents[subTabName].classList.add('active');
 
-            // Draw charts relevant to the active sub-tab
             if (subTabName === 'syllabusProgression') {
                 drawSyllabusProgressionChart();
             } else {
@@ -1853,65 +1870,59 @@
          * @param {string} subTabName - 'physics', 'chemistry', or 'biology'.
          */
         function activateGoalsSubTab(subTabName) {
-            // Deactivate all goals sub-tab buttons and content
             for (const key in goalsSubTabButtons) {
-                if (goalsSubTabButtons[key]) { // Add null check
-                    goalsSubTabButtons[key].classList.remove('active');
-                } else {
-                    console.warn(`Goals sub-tab button with key '${key}' not found.`);
-                }
+                if (goalsSubTabButtons[key]) goalsSubTabButtons[key].classList.remove('active');
             }
             for (const key in goalsSubTabContents) {
-                if (goalsSubTabContents[key]) { // Add null check
-                    goalsSubTabContents[key].classList.remove('active');
-                } else {
-                    console.warn(`Goals sub-tab content with key '${key}' not found.`);
-                }
+                if (goalsSubTabContents[key]) goalsSubTabContents[key].classList.remove('active');
             }
 
-            // Activate the selected goals sub-tab button and content
-            if (goalsSubTabButtons[subTabName]) { // Add null check
-                goalsSubTabButtons[subTabName].classList.add('active');
+            if (goalsSubTabButtons[subTabName]) goalsSubTabButtons[subTabName].classList.add('active');
+            if (goalsSubTabContents[subTabName]) goalsSubTabContents[subTabName].classList.add('active');
+
+            // Show/hide subcategory checkboxes based on subject
+            if (subTabName === 'biology') {
+                physicsChemistrySubcategoryCheckboxes.classList.add('hidden');
+                biologySubcategoryCheckboxes.classList.remove('hidden');
             } else {
-                console.error(`Attempted to activate non-existent goals sub-tab button: ${subTabName}`);
-                return;
-            }
-            if (goalsSubTabContents[subTabName]) { // Add null check
-                goalsSubTabContents[subTabName].classList.add('active');
-            } else {
-                console.error(`Attempted to activate non-existent goals sub-tab content: ${subTabName}`);
-                return;
+                physicsChemistrySubcategoryCheckboxes.classList.remove('hidden');
+                biologySubcategoryCheckboxes.classList.add('hidden');
             }
 
             renderGoalsChapters(subTabName);
         }
 
         /**
-         * Renders the chapters for the given subject into the appropriate display div.
+         * Renders the chapters for the given subject into the appropriate display div,
+         * dynamically adjusting columns based on selected sub-categories.
          * @param {string} subject - 'physics', 'chemistry', or 'biology'.
          */
         function renderGoalsChapters(subject) {
             let chaptersData = [];
             let displayElement;
-            let subCategories = [];
+            let allSubCategories = [];
+            let selectedSubcategoriesKeys = [];
 
             if (subject === 'physics') {
                 chaptersData = physicsGoalsData;
                 displayElement = physicsGoalsDisplay;
-                subCategories = physicsChemistrySubCategories;
+                allSubCategories = physicsChemistrySubCategoriesOrdered;
+                selectedSubcategoriesKeys = selectedPhysicsChemistrySubcategories;
             } else if (subject === 'chemistry') {
                 chaptersData = chemistryGoalsData;
                 displayElement = chemistryGoalsDisplay;
-                subCategories = physicsChemistrySubCategories;
+                allSubCategories = physicsChemistrySubCategoriesOrdered;
+                selectedSubcategoriesKeys = selectedChemistrySubcategories;
             } else if (subject === 'biology') {
                 chaptersData = biologyGoalsData;
                 displayElement = biologyGoalsDisplay;
-                subCategories = biologySubCategories;
+                allSubCategories = biologySubCategoriesOrdered;
+                selectedSubcategoriesKeys = selectedBiologySubcategories;
             } else {
                 return; // Invalid subject
             }
 
-            if (!displayElement) { // Check if display element exists before proceeding
+            if (!displayElement) {
                 console.error(`Display element for ${subject} goals not found.`);
                 return;
             }
@@ -1923,14 +1934,32 @@
                 return;
             }
 
+            // Filter and sort selected sub-categories based on their predefined order
+            const visibleSubcategories = allSubCategories.filter(cat => selectedSubcategoriesKeys.includes(cat.key));
+            visibleSubcategories.sort((a, b) => {
+                // Custom sort order for levels (Beginner to Master)
+                const order = {
+                    'bb_classes_module': 0, 'ncert_questions': 1, 'disha': 2, 'mtg': 3,
+                    'jee_mains_pyqs': 4, 'cengage': 5, 'errorless': 6,
+                    'mission_neet_module': 0, 'ncert_fingertips': 1, 'neetprep': 2
+                };
+                return order[a.key] - order[b.key];
+            });
+
+
+            // Dynamic grid template columns
+            const gridTemplateColumns = `1fr repeat(${visibleSubcategories.length}, minmax(0, 1fr))`;
+            displayElement.style.gridTemplateColumns = gridTemplateColumns; // Apply to parent
+
             // Display headers
             const headerRow = document.createElement('div');
             headerRow.classList.add('chapter-header');
+            headerRow.style.gridTemplateColumns = gridTemplateColumns; // Apply to header row
             const chapterNameHeader = document.createElement('div');
             chapterNameHeader.textContent = "Chapter Name";
             headerRow.appendChild(chapterNameHeader);
 
-            subCategories.forEach(cat => {
+            visibleSubcategories.forEach(cat => {
                 const catHeader = document.createElement('div');
                 catHeader.textContent = cat.name;
                 headerRow.appendChild(catHeader);
@@ -1939,45 +1968,44 @@
 
 
             chaptersData.forEach(chapterObj => {
-                const chapterName = chapterObj['Chapter Name']; // Assuming 'Chapter Name' is the key
-                const chapterKey = `${subject}-${chapterName.replace(/\s|\(|\)/g, '_').replace(/_+/g, '_').toLowerCase()}`; // Unique key for chapter status
+                const chapterName = chapterObj['Chapter Name'];
+                const chapterKey = `${subject}-${chapterName.replace(/\s|\(|\)/g, '_').replace(/_+/g, '_').toLowerCase()}`;
 
-                // Initialize chapter status if not present
                 if (!chapterStatus[chapterKey]) {
                     chapterStatus[chapterKey] = {};
-                    subCategories.forEach(cat => {
+                    allSubCategories.forEach(cat => { // Initialize all, even if not visible
                         chapterStatus[chapterKey][cat.key] = { isCompleted: false, completionDate: null, aiMessage: '' };
                     });
                 }
 
                 const chapterRow = document.createElement('div');
                 chapterRow.classList.add('chapter-row');
+                chapterRow.style.gridTemplateColumns = gridTemplateColumns; // Apply to chapter row
 
-                // Add chapter name column
                 const chapterNameCol = document.createElement('div');
                 chapterNameCol.textContent = chapterName;
                 chapterRow.appendChild(chapterNameCol);
 
-                // Add buttons for each sub-category
-                subCategories.forEach(cat => {
+                visibleSubcategories.forEach((cat, index) => {
                     const buttonContainer = document.createElement('div');
                     const completionButton = document.createElement('button');
                     completionButton.classList.add('chapter-button');
+
                     const subCategoryStatus = chapterStatus[chapterKey][cat.key] || { isCompleted: false, completionDate: null, aiMessage: '' };
 
                     if (subCategoryStatus.isCompleted) {
-                        completionButton.classList.add('completed');
-                        completionButton.textContent = subCategoryStatus.aiMessage || '✔'; // Use AI message or tick
+                        // Apply color based on its level in the *visible* categories
+                        const colorClass = `color-level-${cat.level}`;
+                        completionButton.classList.add('completed', colorClass);
+                        completionButton.textContent = subCategoryStatus.aiMessage || '✔';
                     } else {
-                        completionButton.textContent = 'Mark Done'; // Default text
+                        completionButton.textContent = 'Mark Done';
                     }
 
-                    // Store keys as data attributes for easy access in event listener
                     completionButton.dataset.chapterKey = chapterKey;
                     completionButton.dataset.subCategoryKey = cat.key;
-                    completionButton.dataset.chapterName = chapterName; // Pass chapter name for AI prompt
-                    completionButton.dataset.subCategoryName = cat.name; // Pass sub-category name for AI prompt
-
+                    completionButton.dataset.chapterName = chapterName;
+                    completionButton.dataset.subCategoryName = cat.name;
 
                     completionButton.addEventListener('click', async (event) => {
                         if (userId === 'not-authenticated') {
@@ -1990,8 +2018,9 @@
                         const currentSubCategoryKey = btn.dataset.subCategoryKey;
                         const currentChapterName = btn.dataset.chapterName;
                         const currentSubCategoryName = btn.dataset.subCategoryName;
+                        const currentSubCategoryLevel = allSubCategories.find(c => c.key === currentSubCategoryKey)?.level || 0;
 
-                        // Ensure chapter and sub-category status exist
+
                         if (!chapterStatus[currentChapterKey]) chapterStatus[currentChapterKey] = {};
                         if (!chapterStatus[currentChapterKey][currentSubCategoryKey]) {
                             chapterStatus[currentChapterKey][currentSubCategoryKey] = { isCompleted: false, completionDate: null, aiMessage: '' };
@@ -2001,7 +2030,7 @@
 
                         if (!currentStatus.isCompleted) {
                             showStatusMessage("Marking as done...", 'info');
-                            btn.disabled = true; // Disable button during AI call
+                            btn.disabled = true;
 
                             try {
                                 const prompt = `Generate a very short, encouraging 'done' message (max 10 words) with a celebratory emoji for completing the "${currentSubCategoryName}" part of the chapter "${currentChapterName}". Example: "Awesome work! ${currentSubCategoryName} for ${currentChapterName} mastered! 🎉"`;
@@ -2016,7 +2045,7 @@
                                     body: JSON.stringify(payload)
                                 });
                                 const result = await response.json();
-                                let aiMessage = '✔'; // Default to tick if AI fails
+                                let aiMessage = '✔';
                                 if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
                                     aiMessage = result.candidates[0].content.parts[0].text;
                                 }
@@ -2026,7 +2055,7 @@
                                     completionDate: new Date().toISOString().split('T')[0],
                                     aiMessage: aiMessage
                                 };
-                                btn.classList.add('completed');
+                                btn.classList.add('completed', `color-level-${currentSubCategoryLevel}`); // Add level color
                                 btn.textContent = aiMessage;
                                 showStatusMessage("Task completed!", 'success');
                             } catch (error) {
@@ -2034,14 +2063,14 @@
                                 chapterStatus[currentChapterKey][currentSubCategoryKey] = {
                                     isCompleted: true,
                                     completionDate: new Date().toISOString().split('T')[0],
-                                    aiMessage: '✔' // Fallback
+                                    aiMessage: '✔'
                                 };
-                                btn.classList.add('completed');
+                                btn.classList.add('completed', `color-level-${currentSubCategoryLevel}`); // Fallback with color
                                 btn.textContent = '✔';
                                 showStatusMessage("Task completed (AI message failed).", 'error');
                             } finally {
-                                btn.disabled = false; // Re-enable button
-                                saveChapterStatus(); // Save status after update
+                                btn.disabled = false;
+                                saveChapterStatus();
                             }
                         } else {
                             // If already completed, allow unmarking
@@ -2050,10 +2079,10 @@
                                 completionDate: null,
                                 aiMessage: ''
                             };
-                            btn.classList.remove('completed');
+                            btn.classList.remove('completed', `color-level-${currentSubCategoryLevel}`); // Remove color
                             btn.textContent = 'Mark Done';
                             showStatusMessage("Task unmarked.", 'info');
-                            saveChapterStatus(); // Save status after update
+                            saveChapterStatus();
                         }
                     });
                     buttonContainer.appendChild(completionButton);
@@ -2063,12 +2092,84 @@
             });
         }
 
+        /**
+         * Renders the subcategory checkboxes for the given subject.
+         * @param {string} subject - 'physics', 'chemistry', or 'biology'.
+         */
+        function renderSubcategoryCheckboxes(subject) {
+            let container;
+            let subCategories;
+            let selectedKeys;
+
+            if (subject === 'physics' || subject === 'chemistry') {
+                container = physicsChemistrySubcategoryCheckboxes;
+                subCategories = physicsChemistrySubCategoriesOrdered;
+                selectedKeys = selectedPhysicsChemistrySubcategories;
+            } else if (subject === 'biology') {
+                container = biologySubcategoryCheckboxes;
+                subCategories = biologySubCategoriesOrdered;
+                selectedKeys = selectedBiologySubcategories;
+            } else {
+                return;
+            }
+
+            container.innerHTML = ''; // Clear existing checkboxes
+
+            subCategories.forEach(cat => {
+                const div = document.createElement('div');
+                div.classList.add('flex', 'items-center', 'mr-4');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `checkbox-${subject}-${cat.key}`;
+                input.classList.add('mr-2', 'form-checkbox', 'h-4', 'w-4', 'text-blue-600', 'rounded');
+                input.checked = selectedKeys.includes(cat.key);
+                input.dataset.subject = subject;
+                input.dataset.key = cat.key;
+
+                input.addEventListener('change', (event) => {
+                    const changedSubject = event.target.dataset.subject;
+                    const changedKey = event.target.dataset.key;
+
+                    if (changedSubject === 'physics' || changedSubject === 'chemistry') {
+                        if (event.target.checked) {
+                            if (!selectedPhysicsChemistrySubcategories.includes(changedKey)) {
+                                selectedPhysicsChemistrySubcategories.push(changedKey);
+                            }
+                        } else {
+                            selectedPhysicsChemistrySubcategories = selectedPhysicsChemistrySubcategories.filter(k => k !== changedKey);
+                        }
+                        // Re-render both physics and chemistry goals to ensure consistent column display
+                        renderGoalsChapters('physics');
+                        renderGoalsChapters('chemistry');
+                    } else if (changedSubject === 'biology') {
+                        if (event.target.checked) {
+                            if (!selectedBiologySubcategories.includes(changedKey)) {
+                                selectedBiologySubcategories.push(changedKey);
+                            }
+                        } else {
+                            selectedBiologySubcategories = selectedBiologySubcategories.filter(k => k !== changedKey);
+                        }
+                        renderGoalsChapters('biology');
+                    }
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = `checkbox-${subject}-${cat.key}`;
+                label.classList.add('text-gray-700', 'text-sm', 'font-medium');
+                label.textContent = cat.name;
+
+                div.appendChild(input);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
 
         // Attach event listeners for main tab buttons
         if (tabButtons.regularData) tabButtons.regularData.addEventListener('click', () => activateMainTab('regularData'));
         if (tabButtons.tests) tabButtons.tests.addEventListener('click', () => activateMainTab('tests'));
         if (tabButtons.analytics) tabButtons.analytics.addEventListener('click', () => activateMainTab('analytics'));
-        if (tabButtons.goals) tabButtons.goals.addEventListener('click', () => activateMainTab('goals')); // Renamed listener
+        if (tabButtons.goals) tabButtons.goals.addEventListener('click', () => activateMainTab('goals'));
         if (tabButtons.aiSuggestions) tabButtons.aiSuggestions.addEventListener('click', () => activateMainTab('aiSuggestions'));
 
         // Attach event listeners for test sub-tab buttons
@@ -2082,7 +2183,7 @@
         if (analyticsSubTabButtons.bbcts) analyticsSubTabButtons.bbcts.addEventListener('click', () => activateAnalyticsSubTab('bbcts'));
         if (analyticsSubTabButtons.quarterly) analyticsSubTabButtons.quarterly.addEventListener('click', () => activateAnalyticsSubTab('quarterly'));
         if (analyticsSubTabButtons.missionNeetAnalytics) analyticsSubTabButtons.missionNeetAnalytics.addEventListener('click', () => activateAnalyticsSubTab('missionNeetAnalytics'));
-        if (analyticsSubTabButtons.syllabusProgression) analyticsSubTabButtons.syllabusProgression.addEventListener('click', () => activateAnalyticsSubTab('syllabusProgression')); // New listener
+        if (analyticsSubTabButtons.syllabusProgression) analyticsSubTabButtons.syllabusProgression.addEventListener('click', () => activateAnalyticsSubTab('syllabusProgression'));
 
         // Attach event listeners for goals sub-tab buttons
         if (goalsSubTabButtons.physics) goalsSubTabButtons.physics.addEventListener('click', () => activateGoalsSubTab('physics'));
@@ -2241,7 +2342,12 @@
             chemistryChartQuarterlyInstance = destroyChart(chemistryChartQuarterlyInstance);
             biologyChartQuarterlyInstance = destroyChart(biologyChartQuarterlyInstance);
             missionNeetChartInstance = destroyChart(missionNeetChartInstance);
-            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance); // Ensure this is also destroyed
+            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance);
+
+            if (userId === 'not-authenticated') {
+                // Charts should already be cleared by onAuthStateChanged
+                return;
+            }
 
             // Determine which sub-tab is active and draw charts accordingly
             if (analyticsSubTabContents.ut && analyticsSubTabContents.ut.classList.contains('active')) {
@@ -2251,7 +2357,6 @@
                     if (analyticsCanvasChemistryUT) chemistryChartUTInstance = drawLineChart(analyticsCanvasChemistryUT, 'Chemistry Scores (Unit Tests)', utTestData, 'chemistryScore', 'fullMarks', chemistryChartUTInstance);
                     if (analyticsCanvasBiologyUT) biologyChartUTInstance = drawLineChart(analyticsCanvasBiologyUT, 'Biology Scores (Unit Tests)', utTestData, 'biologyScore', 'fullMarks', biologyChartUTInstance);
                 } else {
-                    // Clear canvas if no data
                     if (analyticsCanvasPhysicsUT) analyticsCanvasPhysicsUT.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsUT.width, analyticsCanvasPhysicsUT.height);
                     if (analyticsCanvasChemistryUT) analyticsCanvasChemistryUT.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryUT.width, analyticsCanvasChemistryUT.height);
                     if (analyticsCanvasBiologyUT) analyticsCanvasBiologyUT.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyUT.width, analyticsCanvasBiologyUT.height);
@@ -2264,7 +2369,6 @@
                     if (analyticsCanvasChemistryBBCTS) chemistryChartBBCTSInstance = drawLineChart(analyticsCanvasChemistryBBCTS, 'Chemistry Scores (BB Classes Test Series)', bbctsData, 'chemistryScore', 'fullMarks', chemistryChartBBCTSInstance);
                     if (analyticsCanvasBiologyBBCTS) biologyChartBBCTSInstance = drawLineChart(analyticsCanvasBiologyBBCTS, 'Biology Scores (BB Classes Test Series)', bbctsData, 'biologyScore', 'fullMarks', biologyChartBBCTSInstance);
                 } else {
-                    // Clear canvas if no data
                     if (analyticsCanvasPhysicsBBCTS) analyticsCanvasPhysicsBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsBBCTS.width, analyticsCanvasPhysicsBBCTS.height);
                     if (analyticsCanvasChemistryBBCTS) analyticsCanvasChemistryBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryBBCTS.width, analyticsCanvasChemistryBBCTS.height);
                     if (analyticsCanvasBiologyBBCTS) analyticsCanvasBiologyBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyBBCTS.width, analyticsCanvasBiologyBBCTS.height);
@@ -2277,7 +2381,6 @@
                     if (analyticsCanvasChemistryQuarterly) chemistryChartQuarterlyInstance = drawLineChart(analyticsCanvasChemistryQuarterly, 'Chemistry Scores (Quarterly Tests)', quarterlyData, 'chemistryScore', 'fullMarks', chemistryChartQuarterlyInstance);
                     if (analyticsCanvasBiologyQuarterly) biologyChartQuarterlyInstance = drawLineChart(analyticsCanvasBiologyQuarterly, 'Biology Scores (Quarterly Tests)', quarterlyData, 'biologyScore', 'fullMarks', biologyChartQuarterlyInstance);
                 } else {
-                    // Clear canvas if no data
                     if (analyticsCanvasPhysicsQuarterly) analyticsCanvasPhysicsQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsQuarterly.width, analyticsCanvasPhysicsQuarterly.height);
                     if (analyticsCanvasChemistryQuarterly) analyticsCanvasChemistryQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryQuarterly.width, analyticsCanvasChemistryQuarterly.height);
                     if (analyticsCanvasBiologyQuarterly) analyticsCanvasBiologyQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyQuarterly.width, analyticsCanvasBiologyQuarterly.height);
@@ -2288,7 +2391,6 @@
                 if (missionNeetData.length > 0) {
                     if (analyticsCanvasMissionNeet) missionNeetChartInstance = drawLineChart(analyticsCanvasMissionNeet, 'Mission NEET Tests Scores (Percentage)', missionNeetData, 'score', 'fullMarks', missionNeetChartInstance, true);
                 } else {
-                    // Clear canvas if no data
                     if (analyticsCanvasMissionNeet) analyticsCanvasMissionNeet.getContext('2d').clearRect(0, 0, analyticsCanvasMissionNeet.width, analyticsCanvasMissionNeet.height);
                     showStatusMessage("No Mission NEET Tests data available to draw graphs.", 'info');
                 }
@@ -2299,12 +2401,16 @@
          * Draws the Syllabus Progression Chart.
          */
         function drawSyllabusProgressionChart() {
-            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance); // Destroy existing
+            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance);
+
+            if (userId === 'not-authenticated') {
+                // Chart should already be cleared by onAuthStateChanged
+                return;
+            }
 
             const allChapters = [...physicsGoalsData, ...chemistryGoalsData, ...biologyGoalsData];
-            const completionDates = {}; // {date: count}
+            const completionDates = {};
 
-            // Populate completionDates from chapterStatus
             for (const chapterKey in chapterStatus) {
                 for (const subCategoryKey in chapterStatus[chapterKey]) {
                     if (chapterStatus[chapterKey][subCategoryKey].isCompleted && chapterStatus[chapterKey][subCategoryKey].completionDate) {
@@ -2318,7 +2424,6 @@
             const cumulativeCompleted = [];
             let currentCumulative = 0;
 
-            // Calculate cumulative sum
             sortedDates.forEach(date => {
                 currentCumulative += completionDates[date];
                 cumulativeCompleted.push(currentCumulative);
@@ -2331,9 +2436,9 @@
                 data: {
                     labels: sortedDates,
                     datasets: [{
-                        label: 'Tasks Completed', // Changed label from Chapters to Tasks
+                        label: 'Tasks Completed',
                         data: cumulativeCompleted,
-                        borderColor: '#059669', /* Emerald Green */
+                        borderColor: '#059669',
                         backgroundColor: 'rgba(5, 150, 105, 0.2)',
                         tension: 0.3,
                         fill: true,
@@ -2384,12 +2489,12 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Number of Tasks', // Changed label from Chapters to Tasks
+                                text: 'Number of Tasks',
                                 color: '#555'
                             },
                             beginAtZero: true,
                             ticks: {
-                                precision: 0 // Ensure whole numbers for chapter count
+                                precision: 0
                             }
                         }
                     }
@@ -2398,7 +2503,7 @@
         }
 
 
-        // --- AI Performance Insights (New Gemini API Integration) ---
+        // --- AI Performance Insights ---
 
         async function getAIPerformanceInsights() {
             if (userId === 'not-authenticated') {
@@ -2417,7 +2522,7 @@
             showStatusMessage("Getting AI performance insights...", 'info');
 
             try {
-                let prompt = `Analyze the following test performance data. Identify strengths, weaknesses, and suggest actionable areas for improvement. Provide a concise summary and specific recommendations.\n\n`;
+                let prompt = `Analyze the following NEET UG test performance data. Identify strengths, weaknesses, and suggest actionable areas for improvement. Provide a concise summary and specific recommendations. Focus on subject-wise performance and overall trends.\n\n`;
                 prompt += `--- Unit Test Data ---\n${JSON.stringify(utTestData, null, 2)}\n\n`;
                 prompt += `--- BBCTS Data ---\n${JSON.stringify(bbctsData, null, 2)}\n\n`;
                 prompt += `--- Quarterly Test Data ---\n${JSON.stringify(quarterlyData, null, 2)}\n\n`;
@@ -2427,7 +2532,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2462,7 +2567,7 @@
         // Event listener for AI Performance Insights button
         if (getAIPerformanceInsightsButton) getAIPerformanceInsightsButton.addEventListener('click', getAIPerformanceInsights);
 
-        // --- AI Productivity Insights (New Gemini API Integration) ---
+        // --- AI Productivity Insights ---
         async function getAIProductivityInsights() {
             if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to get AI productivity insights.", 'error');
@@ -2480,14 +2585,14 @@
             showStatusMessage("Getting AI productivity insights...", 'info');
 
             try {
-                let prompt = `Analyze the following daily log entries. Identify patterns in study topics, time spent, and backlogs. Provide insights on productivity, highlight areas for improvement, and suggest actionable tips for better time management and topic coverage.\n\n`;
+                let prompt = `Analyze the following daily log entries for a NEET UG aspirant. Identify patterns in study topics, time spent, and backlogs. Provide insights on productivity, highlight areas for improvement, and suggest actionable tips for better time management and topic coverage. Incorporate advice that NEET UG toppers often give, such as consistent revision, mock test analysis, and balancing subjects.`;
                 prompt += `--- Daily Log Entries ---\n${JSON.stringify(regularDataLogs, null, 2)}\n\n`;
 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2535,23 +2640,24 @@
                 return;
             }
             const prompt = aiPromptInput.value.trim();
-            if (aiResponseDisplay) aiResponseDisplay.textContent = "Generating AI suggestions..."; // Show loading state immediately
+            if (aiResponseDisplay) aiResponseDisplay.textContent = "Generating AI suggestions...";
             showStatusMessage("Getting AI suggestion...", 'info');
 
             try {
-                // Include current data in the prompt for more relevant suggestions
-                let fullPrompt = `Based on the following data, please provide a suggestion for: "${prompt || 'general study advice'}"\n\n`;
+                let fullPrompt = `Based on the following data, please provide a suggestion for: "${prompt || 'general study advice'}". Incorporate advice from NEET UG toppers where relevant.\n\n`;
                 fullPrompt += `--- Regular Daily Logs ---\n${JSON.stringify(regularDataLogs, null, 2) || "No regular data available."}\n\n`;
                 fullPrompt += `--- Unit Test Data ---\n${JSON.stringify(utTestData, null, 2) || "No UT test data available."}\n\n`;
                 fullPrompt += `--- BBCTS Data ---\n${JSON.stringify(bbctsData, null, 2) || "No BBCTS test data available."}\n\n`;
                 fullPrompt += `--- Quarterly Test Data ---\n${JSON.stringify(quarterlyData, null, 2) || "No Quarterly test data available."}\n\n`;
                 fullPrompt += `--- Mission NEET Data ---\n${JSON.stringify(missionNeetData, null, 2) || "No Mission NEET data available."}\n\n`;
+                fullPrompt += `--- Syllabus Completion Status ---\n${JSON.stringify(chapterStatus, null, 2) || "No chapter completion data."}\n\n`;
+
 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2582,8 +2688,70 @@
         }
         if (getAISuggestionButton) getAISuggestionButton.addEventListener('click', getAISuggestion);
 
+        // --- NEW: Next Study Plan Feature ---
+        async function getNextStudyPlan() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to get your next study plan.", 'error');
+                if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "Please sign in to get your next study plan.";
+                return;
+            }
 
-        // --- NEW: Concept Explainer Function ---
+            if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "Generating your next study plan...";
+            if (getNextStudyPlanButton) getNextStudyPlanButton.disabled = true;
+            showStatusMessage("Generating next study plan...", 'info');
+
+            try {
+                let prompt = `As a NEET UG study assistant, analyze the user's current study data and suggest the *next best topic* to study. For the suggested topic, also recommend a *number of MCQs* to solve and a *time duration* for study. Incorporate advice from successful NEET UG toppers on effective study strategies (e.g., balancing weak areas, consistent practice, active recall). Prioritize topics that are either incomplete, have low scores in tests, or haven't been reviewed recently.
+
+                --- User's Current Data ---
+                Daily Logs: ${JSON.stringify(regularDataLogs.slice(-7), null, 2)} (last 7 days)
+                Unit Test Scores: ${JSON.stringify(utTestData.slice(-3), null, 2)} (last 3 tests)
+                BBCTS Scores: ${JSON.stringify(bbctsData.slice(-3), null, 2)} (last 3 tests)
+                Quarterly Scores: ${JSON.stringify(quarterlyData.slice(-2), null, 2)} (last 2 tests)
+                Mission NEET Scores: ${JSON.stringify(missionNeetData.slice(-5), null, 2)} (last 5 tests)
+                Syllabus Completion Status: ${JSON.stringify(chapterStatus, null, 2)}
+
+                Based on this data, what's the optimal next study topic, how many MCQs, and for how long? Provide a concise, actionable plan.`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = text;
+                    showStatusMessage("Next study plan generated!", 'success');
+                } else {
+                    if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "Could not generate a study plan. Please try again or add more data.";
+                    console.error("Unexpected AI response structure for next study plan:", result);
+                    showStatusMessage("Failed to generate study plan.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching next study plan:", error);
+                if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "An error occurred while fetching the study plan.";
+                showStatusMessage("Error fetching next study plan.", 'error');
+            } finally {
+                if (getNextStudyPlanButton) getNextStudyPlanButton.disabled = false;
+            }
+        }
+        if (getNextStudyPlanButton) getNextStudyPlanButton.addEventListener('click', getNextStudyPlan);
+
+
+        // --- Concept Explainer Function ---
         async function explainConcept() {
             if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to use the Concept Explainer.", 'error');
@@ -2608,7 +2776,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2642,7 +2810,7 @@
         if (explainConceptButton) explainConceptButton.addEventListener('click', explainConcept);
 
 
-        // --- NEW: Revision Topic Suggester Function ---
+        // --- Revision Topic Suggester Function ---
         async function suggestRevisionTopics() {
             if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to get revision suggestions.", 'error');
@@ -2654,7 +2822,7 @@
             showStatusMessage("Generating revision topics...", 'info');
 
             try {
-                let prompt = `Based on the following NEET UG study data, suggest 3-5 specific topics or chapters for revision. Explain briefly why each topic is suggested (e.g., low scores, not reviewed recently). Prioritize topics that appear to be weak areas or have been neglected.
+                let prompt = `Based on the following NEET UG study data, suggest 3-5 specific topics or chapters for revision. Explain briefly why each topic is suggested (e.g., low scores, not reviewed recently). Prioritize topics that appear to be weak areas or have been neglected. Incorporate advice from NEET UG toppers on effective revision strategies.
 
                 --- Your Unit Test Data ---\n${JSON.stringify(utTestData, null, 2) || "No Unit Test data."}\n\n
                 --- Your BB Classes Test Series Data ---\n${JSON.stringify(bbctsData, null, 2) || "No BBCTS data."}\n\n
@@ -2668,7 +2836,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2701,7 +2869,7 @@
         }
         if (suggestRevisionTopicsButton) suggestRevisionTopicsButton.addEventListener('click', suggestRevisionTopics);
 
-        // --- NEW: Mock Test Question Generator Function ---
+        // --- Mock Test Question Generator Function ---
         async function generatePracticeQuestions() {
             if (userId === 'not-authenticated') {
                 showStatusMessage("Please sign in to generate practice questions.", 'error');
@@ -2728,7 +2896,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2760,6 +2928,80 @@
             }
         }
         if (generateQuestionsButton) generateQuestionsButton.addEventListener('click', generatePracticeQuestions);
+
+        // --- NEW: Weakness Identification & Targeted Practice Function ---
+        async function identifyWeaknessesAndSuggestPractice() {
+            if (userId === 'not-authenticated') {
+                showStatusMessage("Please sign in to identify weaknesses and get practice tips.", 'error');
+                if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "Please sign in to identify weaknesses.";
+                return;
+            }
+
+            if (utTestData.length === 0 && bbctsData.length === 0 && quarterlyData.length === 0 && missionNeetData.length === 0 && regularDataLogs.length === 0 && Object.keys(chapterStatus).length === 0) {
+                showStatusMessage("No study data available for weakness analysis. Please enter some data.", 'error');
+                if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "No study data available for weakness analysis. Please enter some data in Daily Routine, My Tests, and Goals tabs.";
+                return;
+            }
+
+            if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "Analyzing your data to identify weaknesses and suggest practice tips...";
+            if (identifyWeaknessesButton) identifyWeaknessesButton.disabled = true;
+            showStatusMessage("Identifying weaknesses...", 'info');
+
+            try {
+                let prompt = `As a NEET UG study assistant, analyze the user's comprehensive study data to identify specific weak areas (topics/chapters) across Physics, Chemistry, and Biology. For each identified weakness, provide targeted, actionable practice suggestions. These suggestions should include:
+                - Specific topics/concepts to revisit.
+                - Recommended types of practice (e.g., MCQs, theory revision, numerical problems).
+                - Potential resources (e.g., "re-read NCERT for X," "solve more questions from Y book/module").
+                - A suggested time allocation for addressing this weakness.
+                
+                Prioritize weaknesses based on low test scores, frequent backlogs in daily logs, or incomplete/struggled syllabus topics. Structure your response clearly with identified weaknesses and corresponding practice tips. Incorporate advice from NEET UG toppers on how to overcome weak areas.
+
+                --- User's Current Data ---
+                Daily Logs (recent 7 entries): ${JSON.stringify(regularDataLogs.slice(-7), null, 2) || "No recent daily logs."}
+                Unit Test Scores (recent 3 tests): ${JSON.stringify(utTestData.slice(-3), null, 2) || "No UT test data."}
+                BBCTS Scores (recent 3 tests): ${JSON.stringify(bbctsData.slice(-3), null, 2) || "No BBCTS test data."}
+                Quarterly Scores (recent 2 tests): ${JSON.stringify(quarterlyData.slice(-2), null, 2) || "No Quarterly test data."}
+                Mission NEET Scores (recent 5 tests): ${JSON.stringify(missionNeetData.slice(-5), null, 2) || "No Mission NEET data."}
+                Syllabus Completion Status: ${JSON.stringify(chapterStatus, null, 2) || "No chapter completion data."}
+
+                Provide a detailed, actionable analysis.`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = text;
+                    showStatusMessage("Weakness analysis received!", 'success');
+                } else {
+                    if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "Could not identify weaknesses. Please try again.";
+                    console.error("Unexpected AI response structure for weakness analysis:", result);
+                    showStatusMessage("Failed to identify weaknesses.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching weakness analysis:", error);
+                if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "An error occurred while fetching weakness analysis.";
+                showStatusMessage("Error fetching weakness analysis.", 'error');
+            } finally {
+                if (identifyWeaknessesButton) identifyWeaknessesButton.disabled = false;
+            }
+        }
+        if (identifyWeaknessesButton) identifyWeaknessesButton.addEventListener('click', identifyWeaknessesAndSuggestPractice);
 
 
         // --- NEET Countdown Logic ---
@@ -2799,11 +3041,10 @@
         async function displayRandomQuoteAndSave() {
             const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
             const selectedQuote = motivationalQuotes[randomIndex];
-            if (motivationalQuoteDisplay) { // Added null check
+            if (motivationalQuoteDisplay) {
                 motivationalQuoteDisplay.textContent = `"${selectedQuote}"`;
             }
 
-            // Only attempt to save if authenticated
             if (userId && userId !== 'loading' && userId !== 'not-authenticated') {
                 const today = new Date().toISOString().split('T')[0];
                 const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
@@ -2819,6 +3060,14 @@
             }
         }
 
+        function displayRandomLoginQuote() {
+            const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+            const selectedQuote = motivationalQuotes[randomIndex];
+            if (loginQuoteDisplay) {
+                loginQuoteDisplay.textContent = `"${selectedQuote}"`;
+            }
+        }
+
         // --- AI Goals Insights ---
         async function getAIGoalsInsights() {
             if (userId === 'not-authenticated') {
@@ -2830,14 +3079,13 @@
             let totalTasks = 0;
             let completedTasks = 0;
 
-            // Calculate total and completed tasks across all chapters and sub-categories
             [physicsGoalsData, chemistryGoalsData, biologyGoalsData].forEach(subjectData => {
                 subjectData.forEach(chapterObj => {
                     const chapterName = chapterObj['Chapter Name'];
                     const subject = subjectData === physicsGoalsData ? 'physics' : (subjectData === chemistryGoalsData ? 'chemistry' : 'biology');
                     const chapterKey = `${subject}-${chapterName.replace(/\s|\(|\)/g, '_').replace(/_+/g, '_').toLowerCase()}`;
 
-                    const subCategoriesForSubject = subject === 'physics' || subject === 'chemistry' ? physicsChemistrySubCategories : biologySubCategories;
+                    const subCategoriesForSubject = subject === 'physics' || subject === 'chemistry' ? physicsChemistrySubCategoriesOrdered : biologySubCategoriesOrdered;
 
                     subCategoriesForSubject.forEach(cat => {
                         totalTasks++;
@@ -2863,7 +3111,6 @@
                 const completionPercentage = (completedTasks / totalTasks) * 100;
                 const remainingTasks = totalTasks - completedTasks;
 
-                // Define target completion date (March 7, 2026, as first week of March)
                 const targetDate = new Date('2026-03-07');
                 const now = new Date();
                 const daysRemainingUntilTarget = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
@@ -2875,17 +3122,17 @@
                 } else if (remainingTasks === 0) {
                     paceMessage = "You've completed all tasks! Excellent work!";
                 } else {
-                    paceMessage = "Keep up the great work!"; // If target date passed or no tasks left
+                    paceMessage = "Keep up the great work!";
                 }
 
 
-                let prompt = `I have completed ${completedTasks} out of ${totalTasks} syllabus tasks (chapters + sub-categories) for NEET UG 2026. This is ${completionPercentage.toFixed(2)}% of the syllabus tasks. I have ${remainingTasks} tasks left. ${paceMessage} Provide an encouraging message about my progress and how much farther I have until completion. Keep it concise and motivating.`;
+                let prompt = `I have completed ${completedTasks} out of ${totalTasks} syllabus tasks (chapters + sub-categories) for NEET UG 2026. This is ${completionPercentage.toFixed(2)}% of the syllabus tasks. I have ${remainingTasks} tasks left. ${paceMessage} Provide an encouraging message about my progress and how much farther I have until completion. Incorporate advice from NEET UG toppers on staying motivated and consistent. Keep it concise and motivating.`;
 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this in runtime
+                const apiKey = "";
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -2926,114 +3173,73 @@
         if (saveBBCTSButton) saveBBCTSButton.addEventListener('click', saveBBCTSData);
         if (saveQuarterlyButton) saveQuarterlyButton.addEventListener('click', saveQuarterlyData);
         if (saveMissionNeetButton) saveMissionNeetButton.addEventListener('click', saveMissionNeetData);
-        if (getAIGoalsInsightsButton) getAIGoalsInsightsButton.addEventListener('click', getAIGoalsInsights); // New AI Goals button
+        if (getAIGoalsInsightsButton) getAIGoalsInsightsButton.addEventListener('click', getAIGoalsInsights);
+
+        // Auth button listeners
+        if (googleSignInButton) googleSignInButton.addEventListener('click', handleGoogleSignIn);
+        if (signOutButton) signOutButton.addEventListener('click', handleSignOut);
 
 
         // Function to load goals data (now hardcoded for Chemistry, and will be for Physics/Biology)
         async function loadGoalsData() {
             showStatusMessage("Loading syllabus data...", 'info');
             try {
-                // Hardcode Chemistry chapters
                 chemistryGoalsData = [
-                    { 'Chapter Name': 'Some Basic Concepts of Chemistry' },
-                    { 'Chapter Name': 'Structure of Atom' },
-                    { 'Chapter Name': 'Classification of Elements and Periodicity in Properties' },
-                    { 'Chapter Name': 'Chemical Bonding and Molecular Structure' },
-                    { 'Chapter Name': 'Thermodynamics' },
-                    { 'Chapter Name': 'Equilibrium' },
-                    { 'Chapter Name': 'Redox Reactions' },
-                    { 'Chapter Name': 'Some p-Block Elements' },
-                    { 'Chapter Name': 'Organic Chemistry - Some Basic Principles and Techniques' },
-                    { 'Chapter Name': 'Hydrocarbons' },
-                    { 'Chapter Name': 'Solutions' },
-                    { 'Chapter Name': 'Electrochemistry' },
-                    { 'Chapter Name': 'Chemical Kinetics' },
-                    { 'Chapter Name': 'The p-Block Element' },
-                    { 'Chapter Name': 'The d- and f-Block Elements' },
-                    { 'Chapter Name': 'Coordination Compounds' },
-                    { 'Chapter Name': 'Haloalkanes and Haloarenes' },
-                    { 'Chapter Name': 'Alcohols, Phenols and Ethers' },
-                    { 'Chapter Name': 'Aldehydes, Ketones and Carboxylic Acids' },
-                    { 'Chapter Name': 'Amines' },
-                    { 'Chapter Name': 'Biomolecules' }
+                    { 'Chapter Name': 'Some Basic Concepts of Chemistry' }, { 'Chapter Name': 'Structure of Atom' },
+                    { 'Chapter Name': 'Classification of Elements and Periodicity in Properties' }, { 'Chapter Name': 'Chemical Bonding and Molecular Structure' },
+                    { 'Chapter Name': 'Thermodynamics' }, { 'Chapter Name': 'Equilibrium' }, { 'Chapter Name': 'Redox Reactions' },
+                    { 'Chapter Name': 'Some p-Block Elements' }, { 'Chapter Name': 'Organic Chemistry - Some Basic Principles and Techniques' },
+                    { 'Chapter Name': 'Hydrocarbons' }, { 'Chapter Name': 'Solutions' }, { 'Chapter Name': 'Electrochemistry' },
+                    { 'Chapter Name': 'Chemical Kinetics' }, { 'Chapter Name': 'The p-Block Element' }, { 'Chapter Name': 'The d- and f-Block Elements' },
+                    { 'Chapter Name': 'Coordination Compounds' }, { 'Chapter Name': 'Haloalkanes and Haloarenes' },
+                    { 'Chapter Name': 'Alcohols, Phenols and Ethers' }, { 'Chapter Name': 'Aldehydes, Ketones and Carboxylic Acids' },
+                    { 'Chapter Name': 'Amines' }, { 'Chapter Name': 'Biomolecules' }
                 ];
 
-                // Hardcode Physics chapters
                 physicsGoalsData = [
-                    { 'Chapter Name': 'Units and Measurements' },
-                    { 'Chapter Name': 'Motion in a Straight Line' },
-                    { 'Chapter Name': 'Motion in a Plane' },
-                    { 'Chapter Name': 'Laws of Motion' },
-                    { 'Chapter Name': 'Work, Energy and Power' },
-                    { 'Chapter Name': 'System of Particles and Rotational Motion' },
-                    { 'Chapter Name': 'Gravitation' },
-                    { 'Chapter Name': 'Mechanical Properties of Solids' },
-                    { 'Chapter Name': 'Mechanical Properties of Fluids' },
-                    { 'Chapter Name': 'Thermal Properties of Matter' },
-                    { 'Chapter Name': 'Thermodynamics' },
-                    { 'Chapter Name': 'Kinetic Theory' },
-                    { 'Chapter Name': 'Oscillations' },
-                    { 'Chapter Name': 'Waves' },
-                    { 'Chapter Name': 'Electric Charges and Fields' },
-                    { 'Chapter Name': 'Electrostatic Potential and Capacitance' },
-                    { 'Chapter Name': 'Current Electricity' },
-                    { 'Chapter Name': 'Moving Charges and Magnetism' },
-                    { 'Chapter Name': 'Magnetism and Matter' },
-                    { 'Chapter Name': 'Electromagnetic Induction' },
-                    { 'Chapter Name': 'Alternating Current' },
-                    { 'Chapter Name': 'Electromagnetic Waves' },
-                    { 'Chapter Name': 'Ray Optics and Optical Instruments' },
-                    { 'Chapter Name': 'Wave Optics' },
-                    { 'Chapter Name': 'Dual Nature of Radiation and Matter' },
-                    { 'Chapter Name': 'Atoms' },
-                    { 'Chapter Name': 'Nuclei' },
+                    { 'Chapter Name': 'Units and Measurements' }, { 'Chapter Name': 'Motion in a Straight Line' },
+                    { 'Chapter Name': 'Motion in a Plane' }, { 'Chapter Name': 'Laws of Motion' },
+                    { 'Chapter Name': 'Work, Energy and Power' }, { 'Chapter Name': 'System of Particles and Rotational Motion' },
+                    { 'Chapter Name': 'Gravitation' }, { 'Chapter Name': 'Mechanical Properties of Solids' },
+                    { 'Chapter Name': 'Mechanical Properties of Fluids' }, { 'Chapter Name': 'Thermal Properties of Matter' },
+                    { 'Chapter Name': 'Thermodynamics' }, { 'Chapter Name': 'Kinetic Theory' }, { 'Chapter Name': 'Oscillations' },
+                    { 'Chapter Name': 'Waves' }, { 'Chapter Name': 'Electric Charges and Fields' },
+                    { 'Chapter Name': 'Electrostatic Potential and Capacitance' }, { 'Chapter Name': 'Current Electricity' },
+                    { 'Chapter Name': 'Moving Charges and Magnetism' }, { 'Chapter Name': 'Magnetism and Matter' },
+                    { 'Chapter Name': 'Electromagnetic Induction' }, { 'Chapter Name': 'Alternating Current' },
+                    { 'Chapter Name': 'Electromagnetic Waves' }, { 'Chapter Name': 'Ray Optics and Optical Instruments' },
+                    { 'Chapter Name': 'Wave Optics' }, { 'Chapter Name': 'Dual Nature of Radiation and Matter' },
+                    { 'Chapter Name': 'Atoms' }, { 'Chapter Name': 'Nuclei' },
                     { 'Chapter Name': 'Semiconductor Electronics: Materials, Devices and Simple Circuits' }
                 ];
 
-                // Hardcode Biology chapters
                 biologyGoalsData = [
-                    { 'Chapter Name': 'The Living World' },
-                    { 'Chapter Name': 'Biological Classification' },
-                    { 'Chapter Name': 'Plant Kingdom' },
-                    { 'Chapter Name': 'Animal Kingdom' },
-                    { 'Chapter Name': 'Morphology of Flowering Plants' },
-                    { 'Chapter Name': 'Anatomy of Flowering Plants' },
-                    { 'Chapter Name': 'Structural Organisation in Animals' },
-                    { 'Chapter Name': 'Cell - The Unit of Life' },
-                    { 'Chapter Name': 'Biomolecules' },
-                    { 'Chapter Name': 'Cell Cycle and Cell Division' },
-                    { 'Chapter Name': 'Photosynthesis in Higher Plants' },
-                    { 'Chapter Name': 'Respiration in Plants' },
-                    { 'Chapter Name': 'Plant Growth and Development' },
-                    { 'Chapter Name': 'Breathing and Exchange of Gases' },
-                    { 'Chapter Name': 'Body Fluids and Circulation' },
-                    { 'Chapter Name': 'Excretory Products and Their Elimination' },
-                    { 'Chapter Name': 'Locomotion and Movement' },
-                    { 'Chapter Name': 'Neural Control and Coordination' },
-                    { 'Chapter Name': 'Chemical Coordination and Integration' },
-                    { 'Chapter Name': 'Sexual Reproduction in Flowering Plants' },
-                    { 'Chapter Name': 'Human Reproduction' },
-                    { 'Chapter Name': 'Reproductive Health' },
-                    { 'Chapter Name': 'Principles of Inheritance and Variation' },
-                    { 'Chapter Name': 'Molecular Basis of Inheritance' },
-                    { 'Chapter Name': 'Evolution' },
-                    { 'Chapter Name': 'Human Health and Disease' },
-                    { 'Chapter Name': 'Microbes in Human Welfare' },
-                    { 'Chapter Name': 'Biotechnology - Principles and Processes' },
-                    { 'Chapter Name': 'Biotechnology and Its Applications' },
-                    { 'Chapter Name': 'Organisms and Populations' },
-                    { 'Chapter Name': 'Ecosystem' },
-                    { 'Chapter Name': 'Biodiversity and Conservation' }
+                    { 'Chapter Name': 'The Living World' }, { 'Chapter Name': 'Biological Classification' },
+                    { 'Chapter Name': 'Plant Kingdom' }, { 'Chapter Name': 'Animal Kingdom' },
+                    { 'Chapter Name': 'Morphology of Flowering Plants' }, { 'Chapter Name': 'Anatomy of Flowering Plants' },
+                    { 'Chapter Name': 'Structural Organisation in Animals' }, { 'Chapter Name': 'Cell - The Unit of Life' },
+                    { 'Chapter Name': 'Biomolecules' }, { 'Chapter Name': 'Cell Cycle and Cell Division' },
+                    { 'Chapter Name': 'Photosynthesis in Higher Plants' }, { 'Chapter Name': 'Respiration in Plants' },
+                    { 'Chapter Name': 'Plant Growth and Development' }, { 'Chapter Name': 'Breathing and Exchange of Gases' },
+                    { 'Chapter Name': 'Body Fluids and Circulation' }, { 'Chapter Name': 'Excretory Products and Their Elimination' },
+                    { 'Chapter Name': 'Locomotion and Movement' }, { 'Chapter Name': 'Neural Control and Coordination' },
+                    { 'Chapter Name': 'Chemical Coordination and Integration' }, { 'Chapter Name': 'Sexual Reproduction in Flowering Plants' },
+                    { 'Chapter Name': 'Human Reproduction' }, { 'Chapter Name': 'Reproductive Health' },
+                    { 'Chapter Name': 'Principles of Inheritance and Variation' }, { 'Chapter Name': 'Molecular Basis of Inheritance' },
+                    { 'Chapter Name': 'Evolution' }, { 'Chapter Name': 'Human Health and Disease' },
+                    { 'Chapter Name': 'Microbes in Human Welfare' }, { 'Chapter Name': 'Biotechnology - Principles and Processes' },
+                    { 'Chapter Name': 'Biotechnology and Its Applications' }, { 'Chapter Name': 'Organisms and Populations' },
+                    { 'Chapter Name': 'Ecosystem' }, { 'Chapter Name': 'Biodiversity and Conservation' }
                 ];
 
+                renderSubcategoryCheckboxes('physics'); // Render initial checkboxes
+                renderSubcategoryCheckboxes('biology'); // Render initial checkboxes for biology (hidden)
 
                 console.log("Physics Goals Data:", physicsGoalsData);
                 console.log("Chemistry Goals Data:", chemistryGoalsData);
                 console.log("Biology Goals Data:", biologyGoalsData);
 
-                // Render chapters for the currently active goals sub-tab
-                // This will be called again by setupDataListeners for chapterStatus
-                renderGoalsChapters('physics'); // Render default physics chapters on load
+                renderGoalsChapters('physics');
 
                 showStatusMessage("Syllabus data loaded successfully!", 'success');
             } catch (error) {
@@ -3046,7 +3252,7 @@
         // Initialize Firebase and set default tab when the window loads
         window.onload = () => {
             initializeFirebase();
-            loadGoalsData(); // Load chapter data
+            loadGoalsData(); // Load chapter data and render checkboxes
             activateMainTab('regularData'); // Set 'Daily Routine' as the default active main tab
             // Set today's date as default for daily log and all test entries
             const today = new Date().toISOString().split('T')[0];
@@ -3058,11 +3264,11 @@
 
             // Initial countdown update
             updateCountdown();
+            displayRandomLoginQuote(); // Set initial quote for login page
         };
 
         // Adjust canvas size on window resize to make it responsive
         window.addEventListener('resize', () => {
-            // Destroy and redraw charts to ensure responsiveness
             if (tabContents.analytics && tabContents.analytics.classList.contains('active')) {
                 if (analyticsSubTabContents.syllabusProgression && analyticsSubTabContents.syllabusProgression.classList.contains('active')) {
                     drawSyllabusProgressionChart();
