@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road to AIIMS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            /* Static vibrant and complex gradient for the background - no dynamic image generation */
+            background: linear-gradient(to bottom right, #e0f7fa, #bbdefb, #e3f2fd);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white for content */
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        input[type="text"], input[type="number"], input[type="date"], textarea {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .data-display {
+            background-color: #f0f4f7;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            min-height: 120px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            max-height: 350px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            color: #334155;
+        }
+        .tab-button {
+            padding: 0.85rem 1.8rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background-color: #e2e8f0;
+            color: #475569;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .tab-button.active {
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            color: #ffffff;
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(59, 130, 246, 0.3);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #d1d5db;
+            color: #1e293b;
+            transform: translateY(-1px);
+        }
+        .sub-tab-button {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.6rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-size: 0.95rem;
+            background-color: #e0f2f7;
+            color: #0d9488;
+        }
+        .sub-tab-button.active {
+            background: linear-gradient(to right, #2dd4bf, #14b8a6);
+            color: #ffffff;
+            border-color: #0f766e;
+            box-shadow: 0 3px 6px rgba(45, 212, 191, 0.3);
+        }
+        .sub-tab-button:not(.active):hover {
+            background-color: #a7f3d0;
+            color: #064e3b;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .sub-tab-content {
+            display: none;
+        }
+        .sub-tab-content.active {
+            display: block;
+        }
+        .status-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .status-message.show {
+            opacity: 1;
+        }
+        .status-message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-message.info {
+            background-color: #e0f2fe;
+            color: #1e40af;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 700px;
+            height: 350px;
+            margin: 1rem auto;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        #countdown-container {
+            background: rgba(255, 255, 255, 0.7); /* Semi-transparent white for glass effect */
+            backdrop-filter: blur(10px); /* Glassmorphism blur */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Stronger, more vibrant shadow */
+            color: #1a202c; /* Darker text for contrast */
+            position: relative; /* For potential pseudo-elements */
+            overflow: hidden; /* Ensure content stays within bounds */
+        }
+        #countdown-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.0) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        #countdown-timer {
+            font-size: 2.5rem; /* text-5xl, slightly larger */
+            font-weight: 800; /* Extra bold */
+            color: #00796b; /* Dark teal for timer */
+            margin-top: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        #motivational-quote {
+            font-style: italic;
+            margin-top: 1rem;
+            font-size: 1.25rem; /* text-xl, larger */
+            color: #4a5568; /* Darker gray text */
+            line-height: 1.5;
+        }
+        .chapter-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            background-color: #e2e8f0;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Show ellipsis for overflow */
+        }
+        .chapter-button:hover:not(.completed) {
+            background-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+        .chapter-button.completed {
+            background: linear-gradient(to right, #84cc16, #22c55e); /* Green gradient */
+            color: #ffffff;
+            border-color: #16a34a;
+            box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);
+            transform: translateY(-1px);
+        }
+        .chapter-button.completed:hover {
+            opacity: 0.9;
+        }
+        .chapter-header {
+            font-weight: 700;
+            color: #1e293b;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid #cbd5e1;
+            margin-bottom: 1rem;
+            display: grid;
+            gap: 0.5rem; /* Reduced gap */
+            align-items: center;
+        }
+        .chapter-row {
+            display: grid;
+            gap: 0.5rem; /* Reduced gap */
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .chapter-row:last-child {
+            border-bottom: none;
+        }
+        .chapter-row > div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chapter-name-col {
+            font-weight: 500;
+            color: #334155;
+        }
+        /* Responsive grid for chapter headers and rows */
+        #physicsGoalsDisplay .chapter-header,
+        #chemistryGoalsDisplay .chapter-header {
+            grid-template-columns: 1fr repeat(7, minmax(0, 1fr)); /* 1 for name, 7 for sub-categories */
+        }
+        #biologyGoalsDisplay .chapter-header {
+            grid-template-columns: 1fr repeat(3, minmax(0, 1fr)); /* 1 for name, 3 for sub-categories */
+        }
+        #physicsGoalsDisplay .chapter-row,
+        #chemistryGoalsDisplay .chapter-row {
+            grid-template-columns: 1fr repeat(7, minmax(0, 1fr));
+        }
+        #biologyGoalsDisplay .chapter-row {
+            grid-template-columns: 1fr repeat(3, minmax(0, 1fr));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Road to AIIMS</h1>
+
+        <!-- NEET Countdown & Motivational Quote -->
+        <div id="countdown-container">
+            <p class="text-2xl font-semibold text-gray-700">Welcome, Future Doctor!</p>
+            <p class="text-xl font-medium text-gray-600 mb-2">Time until NEET UG 2026:</p>
+            <div id="countdown-timer" class="font-mono"></div>
+            <p id="motivational-quote"></p>
+        </div>
+
+        <!-- Main Tab Navigation -->
+        <div class="flex justify-center gap-4 mb-8 flex-wrap">
+            <button id="tabRegularData" class="tab-button active">Daily Routine</button>
+            <button id="tabTests" class="tab-button">My Tests</button>
+            <button id="tabAnalytics" class="tab-button">Analytics & Graphs</button>
+            <button id="tabGoals" class="tab-button">Goals</button> <!-- Renamed from Syllabus -->
+            <button id="tabAISuggestions" class="tab-button">AI Suggestions</button>
+        </div>
+
+        <!-- Tab Content Areas -->
+        <div id="contentRegularData" class="tab-content active">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Daily Routine (Daily Log)</h2>
+            <p class="text-gray-600 mb-4">Enter your daily log data below:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="flex flex-col">
+                    <label for="logDate" class="text-lg font-medium text-gray-700">Day & Date:</label>
+                    <input type="date" id="logDate" class="w-full">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logPhysicsTopic" class="text-lg font-medium text-gray-700">Physics Topic:</label>
+                    <input type="text" id="logPhysicsTopic" class="w-full" placeholder="e.g., Basic Maths Lecture 3">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logChemistryTopic" class="text-lg font-medium text-gray-700">Chemistry Topic:</label>
+                    <input type="text" id="logChemistryTopic" class="w-full" placeholder="e.g., Mole Concept">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logBiologyTopic" class="text-lg font-medium text-gray-700">Biology Topic:</label>
+                    <input type="text" id="logBiologyTopic" class="w-full" placeholder="e.g., Locomotion and Movement">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logPhysicsMCQs" class="text-lg font-medium text-gray-700">Physics (MCQs & Time):</label>
+                    <input type="text" id="logPhysicsMCQs" class="w-full" placeholder="e.g., 40 Qs, 2 hrs">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logChemistryMCQs" class="text-lg font-medium text-gray-700">Chemistry (MCQs & Time):</label>
+                    <input type="text" id="logChemistryMCQs" class="w-full" placeholder="e.g., Structure of Atom all DPPs">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logBiologyMCQs" class="text-lg font-medium text-gray-700">Biology (MCQs & Time):</label>
+                    <input type="text" id="logBiologyMCQs" class="w-full" placeholder="e.g., 1D Assignment">
+                </div>
+                <div class="flex flex-col">
+                    <label for="logBacklogs" class="text-lg font-medium text-gray-700">Backlogs:</label>
+                    <input type="text" id="logBacklogs" class="w-full" placeholder="e.g., Mole Concept not finished">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button id="saveRegularDataButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                    Save Daily Log
+                </button>
+                <button id="getAIProductivityInsightsButton" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                    Get Productivity Insights ✨
+                </button>
+            </div>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">Stored Daily Logs:</h3>
+                <div id="regularDataDisplay" class="data-display text-gray-700">
+                    No daily logs stored yet.
+                </div>
+            </div>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Productivity Analysis:</h3>
+                <div id="aiProductivityAnalysisDisplay" class="data-display text-gray-700">
+                    AI analysis of your daily logs will appear here.
+                </div>
+            </div>
+        </div>
+
+        <div id="contentTests" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">My Tests Data</h2>
+
+            <!-- Test Sub-Tab Navigation -->
+            <div class="flex justify-start gap-3 mb-6 flex-wrap">
+                <button id="testEntrySubTabUT" class="sub-tab-button active">Unit Tests</button>
+                <button id="testEntrySubTabBBCTS" class="sub-tab-button">BB Classes Test Series</button>
+                <button id="testEntrySubTabQuarterly" class="sub-tab-button">Quarterly Tests</button>
+                <button id="testEntrySubTabMissionNeet" class="sub-tab-button">Mission NEET Tests</button>
+            </div>
+
+            <!-- Unit Tests Sub-Tab Content -->
+            <div id="testEntrySubContentUT" class="sub-tab-content active">
+                <p class="text-gray-600 mb-4">Enter your Unit Test data using the fields below:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex flex-col">
+                        <label for="utDate" class="text-lg font-medium text-gray-700">Date:</label>
+                        <input type="date" id="utDate" class="w-full">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utSyllabus" class="text-lg font-medium text-gray-700">Syllabus:</label>
+                        <input type="text" id="utSyllabus" class="w-full" placeholder="e.g., Vectors, Basic Maths">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utFullMarks" class="text-lg font-medium text-gray-700">Full Marks:</label>
+                        <input type="number" id="utFullMarks" class="w-full" placeholder="e.g., 320">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utPhysicsScore" class="text-lg font-medium text-gray-700">Physics Score:</label>
+                        <input type="number" id="utPhysicsScore" class="w-full" placeholder="e.g., 32">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utChemistryScore" class="text-lg font-medium text-gray-700">Chemistry Score:</label>
+                        <input type="number" id="utChemistryScore" class="w-full" placeholder="e.g., 30">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utBiologyScore" class="text-lg font-medium text-gray-700">Biology Score:</label>
+                        <input type="number" id="utBiologyScore" class="w-full" placeholder="e.g., 105">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="utMyMarks" class="text-lg font-medium text-gray-700">My Marks (Total):</label>
+                        <input type="number" id="utMyMarks" class="w-full" placeholder="e.g., 167">
+                    </div>
+                </div>
+                <button id="saveUTButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 mt-4">
+                    Save Unit Test Data
+                </button>
+                <div class="flex flex-col gap-2 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Stored Unit Test Data:</h3>
+                    <div id="testsDataDisplay" class="data-display text-gray-700">
+                        No Unit Test data stored yet.
+                    </div>
+                </div>
+            </div>
+
+            <!-- BB Classes Test Series Sub-Tab Content -->
+            <div id="testEntrySubContentBBCTS" class="sub-tab-content">
+                <p class="text-gray-600 mb-4">Enter your BB Classes Test Series data using the fields below:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex flex-col">
+                        <label for="bbctsDate" class="text-lg font-medium text-gray-700">Date:</label>
+                        <input type="date" id="bbctsDate" class="w-full">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsSyllabus" class="text-lg font-medium text-gray-700">Syllabus:</label>
+                        <input type="text" id="bbctsSyllabus" class="w-full" placeholder="e.g., BBCTS Test 1 Syllabus">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsFullMarks" class="text-lg font-medium text-gray-700">Full Marks:</label>
+                        <input type="number" id="bbctsFullMarks" class="w-full" placeholder="e.g., 360">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsPhysicsScore" class="text-lg font-medium text-gray-700">Physics Score:</label>
+                        <input type="number" id="bbctsPhysicsScore" class="w-full" placeholder="e.g., 60">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsChemistryScore" class="text-lg font-medium text-gray-700">Chemistry Score:</label>
+                        <input type="number" id="bbctsChemistryScore" class="w-full" placeholder="e.g., 70">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsBiologyScore" class="text-lg font-medium text-gray-700">Biology Score:</label>
+                        <input type="number" id="bbctsBiologyScore" class="w-full" placeholder="e.g., 150">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bbctsMyMarks" class="text-lg font-medium text-gray-700">My Marks (Total):</label>
+                        <input type="number" id="bbctsMyMarks" class="w-full" placeholder="e.g., 280">
+                    </div>
+                </div>
+                <button id="saveBBCTSButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 mt-4">
+                    Save BB Classes Test Series Data
+                </button>
+                <div class="flex flex-col gap-2 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Stored BB Classes Test Series Data:</h3>
+                    <div id="bbctsDataDisplay" class="data-display text-gray-700">
+                        No BB Classes Test Series data stored yet.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quarterly Tests Sub-Tab Content -->
+            <div id="testEntrySubContentQuarterly" class="sub-tab-content">
+                <p class="text-gray-600 mb-4">Enter your Quarterly Test data using the fields below:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex flex-col">
+                        <label for="qtDate" class="text-lg font-medium text-gray-700">Date:</label>
+                        <input type="date" id="qtDate" class="w-full">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtSyllabus" class="text-lg font-medium text-gray-700">Syllabus:</label>
+                        <input type="text" id="qtSyllabus" class="w-full" placeholder="e.g., Quarterly Test 1 Syllabus">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtFullMarks" class="text-lg font-medium text-gray-700">Full Marks:</label>
+                        <input type="number" id="qtFullMarks" class="w-full" placeholder="e.g., 720">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtPhysicsScore" class="text-lg font-medium text-gray-700">Physics Score:</label>
+                        <input type="number" id="qtPhysicsScore" class="w-full" placeholder="e.g., 120">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtChemistryScore" class="text-lg font-medium text-gray-700">Chemistry Score:</label>
+                        <input type="number" id="qtChemistryScore" class="w-full" placeholder="e.g., 130">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtBiologyScore" class="text-lg font-medium text-gray-700">Biology Score:</label>
+                        <input type="number" id="qtBiologyScore" class="w-full" placeholder="e.g., 280">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="qtMyMarks" class="text-lg font-medium text-gray-700">My Marks (Total):</label>
+                        <input type="number" id="qtMyMarks" class="w-full" placeholder="e.g., 530">
+                    </div>
+                </div>
+                <button id="saveQuarterlyButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 mt-4">
+                    Save Quarterly Data
+                </button>
+                <div class="flex flex-col gap-2 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Stored Quarterly Data:</h3>
+                    <div id="quarterlyDataDisplay" class="data-display text-gray-700">
+                        No Quarterly data stored yet.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mission NEET Tests Sub-Tab Content -->
+            <div id="testEntrySubContentMissionNeet" class="sub-tab-content">
+                <p class="text-gray-600 mb-4">Enter your Mission NEET data using the fields below:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex flex-col">
+                        <label for="mnDate" class="text-lg font-medium text-gray-700">Date:</label>
+                        <input type="date" id="mnDate" class="w-full">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="mnSyllabus" class="text-lg font-medium text-gray-700">Syllabus:</label>
+                        <input type="text" id="mnSyllabus" class="w-full" placeholder="e.g., Cell Cycle and Cell Division">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="mnFullMarks" class="text-lg font-medium text-gray-700">Full Marks:</label>
+                        <input type="number" id="mnFullMarks" class="w-full" placeholder="e.g., 200">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="mnScore" class="text-lg font-medium text-gray-700">Score:</label>
+                        <input type="number" id="mnScore" class="w-full" placeholder="e.g., 180">
+                    </div>
+                </div>
+                <button id="saveMissionNeetButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 mt-4">
+                    Save Mission NEET Data
+                </button>
+                <div class="flex flex-col gap-2 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Stored Mission NEET Data:</h3>
+                    <div id="missionNeetDataDisplay" class="data-display text-gray-700">
+                        No Mission NEET data stored yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="contentAnalytics" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Analytics & Graphs</h2>
+            <p class="text-gray-600 mb-4">Visualize your test performance and syllabus progression here. Graphs update automatically when data is saved.</p>
+
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button id="getAIPerformanceInsightsButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                    Get AI Performance Insights ✨
+                </button>
+            </div>
+
+            <!-- Analytics Sub-Tab Navigation -->
+            <div class="flex justify-center gap-2 mb-6 flex-wrap">
+                <button id="subTabUT" class="sub-tab-button active">Unit Tests</button>
+                <button id="subTabBBCTS" class="sub-tab-button">BB Classes Test Series</button>
+                <button id="subTabQuarterly" class="sub-tab-button">Quarterly Tests</button>
+                <button id="subTabMissionNeetAnalytics" class="sub-tab-button">Mission NEET Tests</button>
+                <button id="subTabSyllabusProgression" class="sub-tab-button">Syllabus Progression</button> <!-- New Syllabus Progression Graph Tab -->
+            </div>
+
+            <!-- Analytics Sub-Tab Content Areas -->
+            <div id="subContentUT" class="sub-tab-content active">
+                <div id="chartsContainerUT" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="chart-container">
+                        <canvas id="physicsChartUT"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chemistryChartUT"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="biologyChartUT"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subContentBBCTS" class="sub-tab-content">
+                <div id="chartsContainerBBCTS" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="chart-container">
+                        <canvas id="physicsChartBBCTS"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chemistryChartBBCTS"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="biologyChartBBCTS"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subContentQuarterly" class="sub-tab-content">
+                <div id="chartsContainerQuarterly" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="chart-container">
+                        <canvas id="physicsChartQuarterly"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chemistryChartQuarterly"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="biologyChartQuarterly"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subContentMissionNeetAnalytics" class="sub-tab-content">
+                <div id="chartsContainerMissionNeet" class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                    <div class="chart-container">
+                        <canvas id="missionNeetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Syllabus Progression Graph Content -->
+            <div id="subContentSyllabusProgression" class="sub-tab-content">
+                <div class="chart-container">
+                    <canvas id="syllabusProgressionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Performance Analysis:</h3>
+                <div id="aiPerformanceAnalysisDisplay" class="data-display text-gray-700">
+                    AI analysis will appear here after clicking "Get AI Performance Insights ✨".
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW GOALS TAB (Renamed from Syllabus) -->
+        <div id="contentGoals" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">My Study Goals</h2>
+            <p class="text-gray-600 mb-4">Mark chapters as completed to track your progress towards NEET UG 2026!</p>
+
+            <!-- Goals Sub-Tab Navigation (Physics, Chemistry, Biology) -->
+            <div class="flex justify-start gap-3 mb-6 flex-wrap">
+                <button id="goalsSubTabPhysics" class="sub-tab-button active">Physics Goals</button>
+                <button id="goalsSubTabChemistry" class="sub-tab-button">Chemistry Goals</button>
+                <button id="goalsSubTabBiology" class="sub-tab-button">Biology Goals</button>
+            </div>
+
+            <!-- Physics Goals Content -->
+            <div id="goalsSubContentPhysics" class="sub-tab-content active">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Physics Chapters:</h3>
+                <div id="physicsGoalsDisplay" class="data-display text-gray-700">
+                    <!-- Physics chapters will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Chemistry Goals Content -->
+            <div id="goalsSubContentChemistry" class="sub-tab-content">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Chemistry Chapters:</h3>
+                <div id="chemistryGoalsDisplay" class="data-display text-gray-700">
+                    <!-- Chemistry chapters will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Biology Goals Content -->
+            <div id="goalsSubContentBiology" class="sub-tab-content">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Biology Chapters:</h3>
+                <div id="biologyGoalsDisplay" class="data-display text-gray-700">
+                    <!-- Biology chapters will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Progress Insights:</h3>
+                <button id="getAIGoalsInsightsButton" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                    Get My Progress Insights ✨
+                </button>
+                <div id="aiGoalsAnalysisDisplay" class="data-display text-gray-700">
+                    AI analysis of your syllabus progress will appear here.
+                </div>
+            </div>
+        </div>
+
+        <div id="contentAISuggestions" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">AI Suggestions</h2>
+            <div class="flex flex-col gap-2 mb-4">
+                <label for="aiPromptInput" class="text-lg font-medium text-gray-700">Ask for general suggestions (e.g., "Summarize my daily routine", "Suggest next steps for my tests"):</label>
+                <textarea id="aiPromptInput" class="w-full" placeholder="Type your query here..."></textarea>
+            </div>
+            <button id="getAISuggestionButton" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">
+                Get General Suggestion ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI General Suggestion:</h3>
+                <div id="aiResponseDisplay" class="data-display text-gray-700">
+                    AI suggestions will appear here.
+                </div>
+            </div>
+
+            <hr class="my-8 border-t-2 border-gray-200"> <!-- Separator -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Concept Explanation ✨</h2>
+            <div class="flex flex-col gap-2 mb-4">
+                <label for="conceptInput" class="text-lg font-medium text-gray-700">Enter a concept or doubt you want explained:</label>
+                <textarea id="conceptInput" class="w-full" placeholder="e.g., Explain glycolysis, What is osmosis?"></textarea>
+            </div>
+            <button id="explainConceptButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                Explain Concept ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Explanation:</h3>
+                <div id="conceptExplanationDisplay" class="data-display text-gray-700">
+                    Your AI-powered concept explanation will appear here.
+                </div>
+            </div>
+
+            <hr class="my-8 border-t-2 border-gray-200"> <!-- Separator -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Revision Topic Suggester ✨</h2>
+            <p class="text-gray-600 mb-4">Get AI-powered suggestions for topics you should revise based on your performance and study logs.</p>
+            <button id="suggestRevisionTopicsButton" class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75">
+                Suggest Revision Topics ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">AI Revision Suggestions:</h3>
+                <div id="revisionSuggestionsDisplay" class="data-display text-gray-700">
+                    AI revision suggestions will appear here.
+                </div>
+            </div>
+
+            <hr class="my-8 border-t-2 border-gray-200"> <!-- Separator -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Mock Test Question Generator ✨</h2>
+            <p class="text-gray-600 mb-4">Generate practice MCQs for specific subjects and topics.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="flex flex-col">
+                    <label for="questionSubject" class="text-lg font-medium text-gray-700">Subject:</label>
+                    <select id="questionSubject" class="w-full">
+                        <option value="">Select Subject</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Biology">Biology</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label for="questionTopic" class="text-lg font-medium text-gray-700">Topic (e.g., "Thermodynamics", "Human Reproduction"):</label>
+                    <input type="text" id="questionTopic" class="w-full" placeholder="Enter topic">
+                </div>
+            </div>
+            <button id="generateQuestionsButton" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                Generate Practice Questions ✨
+            </button>
+            <div class="flex flex-col gap-2 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800">Generated Questions:</h3>
+                <div id="generatedQuestionsDisplay" class="data-display text-gray-700">
+                    Generated MCQs will appear here.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-sm text-gray-500 mt-4 text-center">
+            User ID: <span id="userIdDisplay" class="font-mono text-gray-600">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase instances and user ID
+        let app;
+        let db;
+        let auth;
+        let userId = 'loading'; // Default until authenticated
+
+        // Global variables to store fetched data
+        let utTestData = [];
+        let bbctsData = [];
+        let quarterlyData = [];
+        let missionNeetData = [];
+        let regularDataLogs = []; // Array to store multiple daily logs
+        // chapterStatus now stores nested objects for sub-categories
+        // Example: chapterStatus = { 'physics-Chapter_Name': { 'bb_classes_module': { isCompleted: true, completionDate: '2023-01-01', aiMessage: 'Great job!' } } }
+        let chapterStatus = {};
+
+        // Parsed CSV data
+        let physicsGoalsData = [];
+        let chemistryGoalsData = [];
+        let biologyGoalsData = [];
+
+        // Chart instances
+        let physicsChartUTInstance = null;
+        let chemistryChartUTInstance = null;
+        let biologyChartUTInstance = null;
+
+        let physicsChartBBCTSInstance = null;
+        let chemistryChartBBCTSInstance = null;
+        let biologyChartBBCTSInstance = null;
+
+        let physicsChartQuarterlyInstance = null;
+        let chemistryChartQuarterlyInstance = null;
+        let biologyChartQuarterlyInstance = null;
+
+        let missionNeetChartInstance = null;
+        let syllabusProgressionChartInstance = null; // New chart instance
+
+        // Motivational quotes for NEET aspirants
+        const motivationalQuotes = [
+            "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+            "The only way to do great work is to love what you do. - Steve Jobs",
+            "Believe you can and you're halfway there. - Theodore Roosevelt",
+            "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+            "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+            "The harder you work for something, the greater you'll feel when you achieve it.",
+            "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+            "The best way to predict the future is to create it. - Peter Drucker",
+            "It always seems impossible until it's done. - Nelson Mandela",
+            "Strive for progress, not perfection."
+        ];
+
+        // Define sub-categories for each subject
+        const physicsChemistrySubCategories = [
+            { key: 'bb_classes_module', name: 'BB Classes Module' },
+            { key: 'ncert_questions', name: 'NCERT Questions' },
+            { key: 'jee_mains_pyqs', name: 'JEE-Mains PYQs' },
+            { key: 'cengage', name: 'Cengage' },
+            { key: 'mtg', name: 'MTG' },
+            { key: 'disha', name: 'Disha' },
+            { key: 'errorless', name: 'Errorless' }
+        ];
+
+        const biologySubCategories = [
+            { key: 'mission_neet_module', name: 'Mission NEET Module' },
+            { key: 'ncert_fingertips', name: 'NCERT Fingertips' },
+            { key: 'neetprep', name: 'NEETprep' }
+        ];
+
+        // Get app ID and Firebase config from the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // DOM Elements
+        const tabButtons = {
+            regularData: document.getElementById('tabRegularData'),
+            tests: document.getElementById('tabTests'),
+            analytics: document.getElementById('tabAnalytics'),
+            goals: document.getElementById('tabGoals'), // Renamed
+            aiSuggestions: document.getElementById('tabAISuggestions')
+        };
+        const tabContents = {
+            regularData: document.getElementById('contentRegularData'),
+            tests: document.getElementById('contentTests'),
+            analytics: document.getElementById('contentAnalytics'),
+            goals: document.getElementById('contentGoals'), // Renamed
+            aiSuggestions: document.getElementById('contentAISuggestions')
+        };
+
+        const testEntrySubTabButtons = {
+            ut: document.getElementById('testEntrySubTabUT'),
+            bbcts: document.getElementById('testEntrySubTabBBCTS'),
+            quarterly: document.getElementById('testEntrySubTabQuarterly'),
+            missionNeet: document.getElementById('testEntrySubTabMissionNeet')
+        };
+        const testEntrySubTabContents = {
+            ut: document.getElementById('testEntrySubContentUT'),
+            bbcts: document.getElementById('testEntrySubContentBBCTS'),
+            quarterly: document.getElementById('testEntrySubContentQuarterly'),
+            missionNeet: document.getElementById('testEntrySubContentMissionNeet')
+        };
+
+        const analyticsSubTabButtons = {
+            ut: document.getElementById('subTabUT'),
+            bbcts: document.getElementById('subTabBBCTS'),
+            quarterly: document.getElementById('subTabQuarterly'),
+            missionNeetAnalytics: document.getElementById('subTabMissionNeetAnalytics'),
+            syllabusProgression: document.getElementById('subTabSyllabusProgression') // New button
+        };
+        const analyticsSubTabContents = {
+            ut: document.getElementById('subContentUT'),
+            bbcts: document.getElementById('subContentBBCTS'),
+            quarterly: document.getElementById('subContentQuarterly'),
+            missionNeetAnalytics: document.getElementById('subContentMissionNeetAnalytics'),
+            syllabusProgression: document.getElementById('subContentSyllabusProgression') // New content
+        };
+
+        // Goals Sub-Tab Elements (formerly Syllabus)
+        const goalsSubTabButtons = {
+            physics: document.getElementById('goalsSubTabPhysics'),
+            chemistry: document.getElementById('goalsSubTabChemistry'),
+            biology: document.getElementById('goalsSubTabBiology')
+        };
+        const goalsSubTabContents = {
+            physics: document.getElementById('goalsSubContentPhysics'),
+            chemistry: document.getElementById('goalsSubContentChemistry'),
+            biology: document.getElementById('goalsSubContentBiology')
+        };
+        const physicsGoalsDisplay = document.getElementById('physicsGoalsDisplay');
+        const chemistryGoalsDisplay = document.getElementById('chemistryGoalsDisplay');
+        const biologyGoalsDisplay = document.getElementById('biologyGoalsDisplay');
+        const getAIGoalsInsightsButton = document.getElementById('getAIGoalsInsightsButton');
+        const aiGoalsAnalysisDisplay = document.getElementById('aiGoalsAnalysisDisplay');
+
+
+        // UT Test Entry Fields
+        const utDateInput = document.getElementById('utDate');
+        const utSyllabusInput = document.getElementById('utSyllabus');
+        const utFullMarksInput = document.getElementById('utFullMarks');
+        const utPhysicsScoreInput = document.getElementById('utPhysicsScore');
+        const utChemistryScoreInput = document.getElementById('utChemistryScore');
+        const utBiologyScoreInput = document.getElementById('utBiologyScore');
+        const utMyMarksInput = document.getElementById('utMyMarks');
+        const saveUTButton = document.getElementById('saveUTButton');
+        const testsDataDisplay = document.getElementById('testsDataDisplay'); // This now displays UT data
+
+        // BBCTS Test Entry Fields
+        const bbctsDateInput = document.getElementById('bbctsDate');
+        const bbctsSyllabusInput = document.getElementById('bbctsSyllabus');
+        const bbctsFullMarksInput = document.getElementById('bbctsFullMarks');
+        const bbctsPhysicsScoreInput = document.getElementById('bbctsPhysicsScore');
+        const bbctsChemistryScoreInput = document.getElementById('bbctsChemistryScore');
+        const bbctsBiologyScoreInput = document.getElementById('bbctsBiologyScore');
+        const bbctsMyMarksInput = document.getElementById('bbctsMyMarks');
+        const saveBBCTSButton = document.getElementById('saveBBCTSButton');
+        const bbctsDataDisplay = document.getElementById('bbctsDataDisplay');
+
+        // Quarterly Test Entry Fields
+        const qtDateInput = document.getElementById('qtDate');
+        const qtSyllabusInput = document.getElementById('qtSyllabus');
+        const qtFullMarksInput = document.getElementById('qtFullMarks');
+        const qtPhysicsScoreInput = document.getElementById('qtPhysicsScore');
+        const qtChemistryScoreInput = document.getElementById('qtChemistryScore');
+        const qtBiologyScoreInput = document.getElementById('qtBiologyScore');
+        const qtMyMarksInput = document.getElementById('qtMyMarks');
+        const saveQuarterlyButton = document.getElementById('saveQuarterlyButton');
+        const quarterlyDataDisplay = document.getElementById('quarterlyDataDisplay');
+
+        // Mission NEET Test Entry Fields
+        const mnDateInput = document.getElementById('mnDate');
+        const mnSyllabusInput = document.getElementById('mnSyllabus');
+        const mnFullMarksInput = document.getElementById('mnFullMarks');
+        const mnScoreInput = document.getElementById('mnScore');
+        const saveMissionNeetButton = document.getElementById('saveMissionNeetButton');
+        const missionNeetDataDisplay = document.getElementById('missionNeetDataDisplay');
+
+        // Regular Data Entry Fields
+        const logDateInput = document.getElementById('logDate');
+        const logPhysicsTopicInput = document.getElementById('logPhysicsTopic');
+        const logChemistryTopicInput = document.getElementById('logChemistryTopic');
+        const logBiologyTopicInput = document.getElementById('logBiologyTopic');
+        const logPhysicsMCQsInput = document.getElementById('logPhysicsMCQs');
+        const logChemistryMCQsInput = document.getElementById('logChemistryMCQs');
+        const logBiologyMCQsInput = document.getElementById('logBiologyMCQs');
+        const logBacklogsInput = document.getElementById('logBacklogs');
+        const saveRegularDataButton = document.getElementById('saveRegularDataButton');
+        const regularDataDisplay = document.getElementById('regularDataDisplay');
+        const getAIProductivityInsightsButton = document.getElementById('getAIProductivityInsightsButton');
+        const aiProductivityAnalysisDisplay = document.getElementById('aiProductivityAnalysisDisplay');
+
+
+        const analyticsCanvasPhysicsUT = document.getElementById('physicsChartUT');
+        const analyticsCanvasChemistryUT = document.getElementById('chemistryChartUT');
+        const analyticsCanvasBiologyUT = document.getElementById('biologyChartUT');
+
+        const analyticsCanvasPhysicsBBCTS = document.getElementById('physicsChartBBCTS');
+        const analyticsCanvasChemistryBBCTS = document.getElementById('chemistryChartBBCTS');
+        const analyticsCanvasBiologyBBCTS = document.getElementById('biologyChartBBCTS');
+
+        const analyticsCanvasPhysicsQuarterly = document.getElementById('physicsChartQuarterly');
+        const analyticsCanvasChemistryQuarterly = document.getElementById('chemistryChartQuarterly');
+        const analyticsCanvasBiologyQuarterly = document.getElementById('biologyChartQuarterly');
+
+        const analyticsCanvasMissionNeet = document.getElementById('missionNeetChart');
+        const syllabusProgressionCanvas = document.getElementById('syllabusProgressionChart');
+
+
+        const getAIPerformanceInsightsButton = document.getElementById('getAIPerformanceInsightsButton');
+        const aiPerformanceAnalysisDisplay = document.getElementById('aiPerformanceAnalysisDisplay');
+
+
+        const getAISuggestionButton = document.getElementById('getAISuggestionButton'); // New button for general AI suggestion
+        const aiPromptInput = document.getElementById('aiPromptInput');
+        const aiResponseDisplay = document.getElementById('aiResponseDisplay');
+
+        // New elements for Concept Explainer
+        const conceptInput = document.getElementById('conceptInput');
+        const explainConceptButton = document.getElementById('explainConceptButton');
+        const conceptExplanationDisplay = document.getElementById('conceptExplanationDisplay');
+
+        // New elements for Revision Topic Suggester
+        const suggestRevisionTopicsButton = document.getElementById('suggestRevisionTopicsButton');
+        const revisionSuggestionsDisplay = document.getElementById('revisionSuggestionsDisplay');
+
+        // New elements for Mock Test Question Generator
+        const questionSubjectSelect = document.getElementById('questionSubject');
+        const questionTopicInput = document.getElementById('questionTopic');
+        const generateQuestionsButton = document.getElementById('generateQuestionsButton');
+        const generatedQuestionsDisplay = document.getElementById('generatedQuestionsDisplay');
+
+
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const countdownTimerDisplay = document.getElementById('countdown-timer');
+        const motivationalQuoteDisplay = document.getElementById('motivational-quote');
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a temporary status message to the user.
+         * @param {string} message - The message to display.
+         * @param {'success'|'error'|'info'} type - The type of message (for styling).
+         */
+        function showStatusMessage(message, type) {
+            let statusDiv = document.querySelector('.status-message');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.classList.add('status-message');
+                document.body.appendChild(statusDiv);
+            }
+
+            // Clear previous classes and set new ones
+            statusDiv.className = 'status-message'; // Reset classes
+            statusDiv.classList.add(type);
+            statusDiv.textContent = message;
+
+            // Show the message
+            statusDiv.classList.add('show');
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        /**
+         * Parses CSV text into an array of objects.
+         * Assumes the first row is the header.
+         * @param {string} csvText - The CSV data as a string.
+         * @returns {Array<Object>} - An array of objects, where each object represents a row.
+         */
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].split(',').map(header => header.trim());
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(value => value.trim());
+                if (values.length !== headers.length) {
+                    console.warn(`Skipping malformed row: ${lines[i]}`);
+                    continue;
+                }
+                const rowObject = {};
+                headers.forEach((header, index) => {
+                    rowObject[header] = values[index];
+                });
+                data.push(rowObject);
+            }
+            return data;
+        }
+
+        // --- Firebase Initialization and Authentication ---
+
+        /**
+         * Initializes Firebase and sets up authentication.
+         * Sets up real-time listeners for data after authentication.
+         */
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in anonymously or with custom token if available
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Listen for auth state changes to get the user ID
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        if (userIdDisplay) userIdDisplay.textContent = userId;
+                        console.log("User authenticated:", userId);
+                        // Once authenticated, set up real-time listeners for all relevant data
+                        setupDataListeners();
+                        // Display quote after auth
+                        displayRandomQuoteAndSave();
+                    } else {
+                        userId = crypto.randomUUID(); // Fallback for unauthenticated state
+                        if (userIdDisplay) userIdDisplay.textContent = userId + " (anonymous)";
+                        console.log("No user signed in, using random ID:", userId);
+                        setupDataListeners(); // Still attempt to set up listeners for anonymous user
+                        displayRandomQuoteAndSave();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or authenticating:", error);
+                showStatusMessage("Error loading app. Please check console for details.", 'error');
+                if (userIdDisplay) userIdDisplay.textContent = "Error";
+            }
+        }
+
+        /**
+         * Sets up real-time listeners for different data types in Firestore.
+         */
+        function setupDataListeners() {
+            if (!db || !userId || userId === 'loading') {
+                console.warn("Firestore not initialized or userId not available yet for data listeners.");
+                return;
+            }
+
+            // Listener for Regular Data Logs
+            const regularDocRef = doc(db, `artifacts/${appId}/users/${userId}/regularDataLogs`, 'myDailyLogs');
+            onSnapshot(regularDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        regularDataLogs = JSON.parse(data.content || "[]");
+                        if (regularDataDisplay) regularDataDisplay.textContent = JSON.stringify(regularDataLogs, null, 2); // Pretty print JSON
+                    } catch (e) {
+                        console.error("Error parsing regular data logs from Firestore:", e);
+                        if (regularDataDisplay) regularDataDisplay.textContent = "Error: Stored regular data is not valid JSON.";
+                        regularDataLogs = [];
+                    }
+                    console.log("Regular data logs loaded from Firestore:", regularDataLogs);
+                } else {
+                    regularDataLogs = [];
+                    if (regularDataDisplay) regularDataDisplay.textContent = "No daily logs stored yet.";
+                    console.log("No regular data logs document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to regular data logs document:", error);
+                if (regularDataDisplay) regularDataDisplay.textContent = "Error loading regular data. Please check console.";
+            });
+
+
+            // Listener for Tests Data (UT)
+            const testsDocRef = doc(db, `artifacts/${appId}/users/${userId}/testData`, 'myTestDocument');
+            onSnapshot(testsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        utTestData = JSON.parse(data.content || "[]");
+                        if (testsDataDisplay) testsDataDisplay.textContent = JSON.stringify(utTestData, null, 2); // Pretty print JSON
+                    } catch (e) {
+                        console.error("Error parsing UT test data from Firestore:", e);
+                        if (testsDataDisplay) testsDataDisplay.textContent = "Error: Stored UT data is not valid JSON.";
+                        utTestData = []; // Reset to empty array on parse error
+                    }
+                    console.log("Tests data loaded from Firestore:", utTestData);
+                    // Automatically update graphs if analytics tab is active and UT sub-tab is active
+                    if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.ut && analyticsSubTabContents.ut.classList.contains('active')) {
+                        drawAllCharts();
+                    }
+                } else {
+                    utTestData = [];
+                    if (testsDataDisplay) testsDataDisplay.textContent = "No Unit Tests data stored yet.";
+                    console.log("No tests data document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to tests data document:", error);
+                if (testsDataDisplay) testsDataDisplay.textContent = "Error loading tests data. Please check console.";
+            });
+
+            // Listener for BBCTS Data
+            const bbctsDocRef = doc(db, `artifacts/${appId}/users/${userId}/bbctsData`, 'myBBCTSDocument');
+            onSnapshot(bbctsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        bbctsData = JSON.parse(data.content || "[]");
+                        if (bbctsDataDisplay) bbctsDataDisplay.textContent = JSON.stringify(bbctsData, null, 2);
+                    } catch (e) {
+                        console.error("Error parsing BBCTS data from Firestore:", e);
+                        if (bbctsDataDisplay) bbctsDataDisplay.textContent = "Error: Stored BBCTS data is not valid JSON.";
+                        bbctsData = [];
+                    }
+                    console.log("BBCTS data loaded from Firestore:", bbctsData);
+                    // Automatically update graphs if analytics tab is active and BBCTS sub-tab is active
+                    if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.bbcts && analyticsSubTabContents.bbcts.classList.contains('active')) {
+                        drawAllCharts();
+                    }
+                } else {
+                    bbctsData = [];
+                    if (bbctsDataDisplay) bbctsDataDisplay.textContent = "No BB Classes Test Series data stored yet.";
+                    console.log("No BBCTS data document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to BBCTS data document:", error);
+                if (bbctsDataDisplay) bbctsDataDisplay.textContent = "Error loading BBCTS data. Please check console.";
+            });
+
+            // Listener for Quarterly Data
+            const quarterlyDocRef = doc(db, `artifacts/${appId}/users/${userId}/quarterlyData`, 'myQuarterlyDocument');
+            onSnapshot(quarterlyDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        quarterlyData = JSON.parse(data.content || "[]");
+                        if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = JSON.stringify(quarterlyData, null, 2);
+                    } catch (e) {
+                        console.error("Error parsing Quarterly data from Firestore:", e);
+                        if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "Error: Stored Quarterly data is not valid JSON.";
+                        quarterlyData = [];
+                    }
+                    console.log("Quarterly data loaded from Firestore:", quarterlyData);
+                    // Automatically update graphs if analytics tab is active and Quarterly sub-tab is active
+                    if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.quarterly && analyticsSubTabContents.quarterly.classList.contains('active')) {
+                        drawAllCharts();
+                    }
+                } else {
+                    quarterlyData = [];
+                    if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "No Quarterly Tests data stored yet.";
+                    console.log("No Quarterly data document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to Quarterly data document:", error);
+                if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "Error loading Quarterly data. Please check console.";
+            });
+
+            // Listener for Mission NEET Data
+            const missionNeetDocRef = doc(db, `artifacts/${appId}/users/${userId}/missionNeetData`, 'myMissionNeetDocument');
+            onSnapshot(missionNeetDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        missionNeetData = JSON.parse(data.content || "[]");
+                        if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = JSON.stringify(missionNeetData, null, 2); // Pretty print JSON
+                    } catch (e) {
+                        console.error("Error parsing Mission NEET data from Firestore:", e);
+                        if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "Error: Stored Mission NEET data is not valid JSON.";
+                        missionNeetData = []; // Reset to empty array on parse error
+                    }
+                    console.log("Mission NEET data loaded from Firestore:", missionNeetData);
+                    // Automatically update graphs if analytics tab is active and Mission NEET sub-tab is active
+                    if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.missionNeetAnalytics && analyticsSubTabContents.missionNeetAnalytics.classList.contains('active')) {
+                        drawAllCharts();
+                    }
+                } else {
+                    missionNeetData = [];
+                    if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "No Mission NEET Tests data stored yet.";
+                    console.log("No Mission NEET data document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to Mission NEET data document:", error);
+                if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "Error loading Mission NEET data. Please check console.";
+            });
+
+            // Listener for Quote State (to persist daily quote)
+            const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
+            onSnapshot(quoteStateDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const today = new Date().toISOString().split('T')[0];
+                    if (data.lastQuoteDate === today) {
+                        if (motivationalQuoteDisplay) motivationalQuoteDisplay.textContent = `"${motivationalQuotes[data.lastQuoteIndex]}"`;
+                    } else {
+                        // If date is different, pick a new quote and update Firestore
+                        displayRandomQuoteAndSave();
+                    }
+                } else {
+                    // No quote state found, set initial quote
+                    displayRandomQuoteAndSave();
+                }
+            }, (error) => {
+                console.error("Error listening to quote state document:", error);
+                // Fallback to random quote without persistence
+                displayRandomQuoteAndSave();
+            });
+
+            // Listener for Chapter Status (isCompleted)
+            const chapterStatusDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'chapterStatus');
+            onSnapshot(chapterStatusDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    try {
+                        chapterStatus = JSON.parse(data.content || "{}");
+                        // Re-render goals chapters to reflect updated status
+                        renderGoalsChapters('physics');
+                        renderGoalsChapters('chemistry');
+                        renderGoalsChapters('biology');
+                        // Redraw syllabus progression chart
+                        if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.syllabusProgression && analyticsSubTabContents.syllabusProgression.classList.contains('active')) {
+                            drawSyllabusProgressionChart();
+                        }
+                    } catch (e) {
+                        console.error("Error parsing chapter status from Firestore:", e);
+                        chapterStatus = {};
+                    }
+                    console.log("Chapter status loaded from Firestore:", chapterStatus);
+                } else {
+                    chapterStatus = {};
+                    console.log("No chapter status document found.");
+                }
+            }, (error) => {
+                console.error("Error listening to chapter status document:", error);
+            });
+        }
+
+        // --- Data Saving Functions ---
+
+        /**
+         * Saves the regular data from the input fields to Firestore.
+         */
+        async function saveRegularData() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save regular data.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+
+            const newLogEntry = {
+                date: logDateInput.value,
+                physicsTopic: logPhysicsTopicInput.value,
+                chemistryTopic: logChemistryTopicInput.value,
+                biologyTopic: logBiologyTopicInput.value,
+                physicsMCQs: logPhysicsMCQsInput.value,
+                chemistryMCQs: logChemistryMCQsInput.value,
+                biologyMCQs: logBiologyMCQsInput.value,
+                backlogs: logBacklogsInput.value
+            };
+
+            // Add the new entry to the existing logs
+            const updatedLogs = [...regularDataLogs, newLogEntry];
+
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/regularDataLogs`, 'myDailyLogs');
+
+            try {
+                // Store the stringified JSON array
+                await setDoc(docRef, { content: JSON.stringify(updatedLogs) });
+                console.log("Daily log successfully saved!");
+                showStatusMessage("Daily log saved successfully!", 'success');
+                // Clear input fields after saving
+                if (logPhysicsTopicInput) logPhysicsTopicInput.value = '';
+                if (logChemistryTopicInput) logChemistryTopicInput.value = '';
+                if (logBiologyTopicInput) logBiologyTopicInput.value = '';
+                if (logPhysicsMCQsInput) logPhysicsMCQsInput.value = '';
+                if (logChemistryMCQsInput) logChemistryMCQsInput.value = '';
+                if (logBiologyMCQsInput) logBiologyMCQsInput.value = '';
+                if (logBacklogsInput) logBacklogsInput.value = '';
+                // Set date back to today's date
+                if (logDateInput) logDateInput.value = new Date().toISOString().split('T')[0];
+
+                // Update quote if data is logged for a new day
+                const today = new Date().toISOString().split('T')[0];
+                const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
+                const docSnap = await getDoc(quoteStateDocRef); // Get current state
+                if (!docSnap.exists() || docSnap.data().lastQuoteDate !== today) {
+                    displayRandomQuoteAndSave();
+                }
+
+            } catch (error) {
+                console.error("Error saving daily log:", error);
+                showStatusMessage("Error saving daily log. Please try again.", 'error');
+            }
+        }
+
+        /**
+         * Saves the Unit Test data from the input fields to Firestore.
+         */
+        async function saveUTData() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save UT data.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+
+            const newUTEntry = {
+                date: utDateInput.value,
+                syllabus: utSyllabusInput.value,
+                fullMarks: parseFloat(utFullMarksInput.value),
+                physicsScore: parseFloat(utPhysicsScoreInput.value),
+                chemistryScore: parseFloat(utChemistryScoreInput.value),
+                biologyScore: parseFloat(utBiologyScoreInput.value),
+                myMarks: parseFloat(utMyMarksInput.value)
+            };
+
+            // Basic validation
+            if (!newUTEntry.date || !newUTEntry.syllabus || isNaN(newUTEntry.fullMarks) || isNaN(newUTEntry.physicsScore) ||
+                isNaN(newUTEntry.chemistryScore) || isNaN(newUTEntry.biologyScore) || isNaN(newUTEntry.myMarks)) {
+                showStatusMessage("Please fill all Unit Test fields with valid data.", 'error');
+                return;
+            }
+
+            const updatedUTData = [...utTestData, newUTEntry];
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/testData`, 'myTestDocument');
+
+            try {
+                await setDoc(docRef, { content: JSON.stringify(updatedUTData) });
+                console.log("Unit Test data successfully saved!");
+                showStatusMessage("Unit Test data saved successfully!", 'success');
+                // Clear input fields
+                if (utDateInput) utDateInput.value = new Date().toISOString().split('T')[0];
+                if (utSyllabusInput) utSyllabusInput.value = '';
+                if (utFullMarksInput) utFullMarksInput.value = '';
+                if (utPhysicsScoreInput) utPhysicsScoreInput.value = '';
+                if (utChemistryScoreInput) utChemistryScoreInput.value = '';
+                if (utBiologyScoreInput) utBiologyScoreInput.value = '';
+                if (utMyMarksInput) utMyMarksInput.value = '';
+            } catch (error) {
+                console.error("Error saving Unit Test data:", error);
+                showStatusMessage("Error saving Unit Test data. Please try again.", 'error');
+            }
+        }
+
+
+        /**
+         * Saves the BBCTS data from the input fields to Firestore.
+         */
+        async function saveBBCTSData() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save BBCTS data.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+
+            const newBBCTSEntry = {
+                date: bbctsDateInput.value,
+                syllabus: bbctsSyllabusInput.value,
+                fullMarks: parseFloat(bbctsFullMarksInput.value),
+                physicsScore: parseFloat(bbctsPhysicsScoreInput.value),
+                chemistryScore: parseFloat(bbctsChemistryScoreInput.value),
+                biologyScore: parseFloat(bbctsBiologyScoreInput.value),
+                myMarks: parseFloat(bbctsMyMarksInput.value)
+            };
+
+            // Basic validation
+            if (!newBBCTSEntry.date || !newBBCTSEntry.syllabus || isNaN(newBBCTSEntry.fullMarks) || isNaN(newBBCTSEntry.physicsScore) ||
+                isNaN(newBBCTSEntry.chemistryScore) || isNaN(newBBCTSEntry.biologyScore) || isNaN(newBBCTSEntry.myMarks)) {
+                showStatusMessage("Please fill all BB Classes Test Series fields with valid data.", 'error');
+                return;
+            }
+
+            const updatedBBCTSData = [...bbctsData, newBBCTSEntry];
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/bbctsData`, 'myBBCTSDocument');
+
+            try {
+                await setDoc(docRef, { content: JSON.stringify(updatedBBCTSData) });
+                console.log("BBCTS data successfully saved!");
+                showStatusMessage("BB Classes Test Series data saved successfully!", 'success');
+                // Clear input fields
+                if (bbctsDateInput) bbctsDateInput.value = new Date().toISOString().split('T')[0];
+                if (bbctsSyllabusInput) bbctsSyllabusInput.value = '';
+                if (bbctsFullMarksInput) bbctsFullMarksInput.value = '';
+                if (bbctsPhysicsScoreInput) bbctsPhysicsScoreInput.value = '';
+                if (bbctsChemistryScoreInput) bbctsChemistryScoreInput.value = '';
+                if (bbctsBiologyScoreInput) bbctsBiologyScoreInput.value = '';
+                if (bbctsMyMarksInput) bbctsMyMarksInput.value = '';
+            } catch (error) {
+                console.error("Error saving BBCTS data:", error);
+                showStatusMessage("Error saving BB Classes Test Series data. Please try again.", 'error');
+            }
+        }
+
+        /**
+         * Saves the Quarterly data from the input fields to Firestore.
+         */
+        async function saveQuarterlyData() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save Quarterly data.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+
+            const newQTEntry = {
+                date: qtDateInput.value,
+                syllabus: qtSyllabusInput.value,
+                fullMarks: parseFloat(qtFullMarksInput.value),
+                physicsScore: parseFloat(qtPhysicsScoreInput.value),
+                chemistryScore: parseFloat(qtChemistryScoreInput.value),
+                biologyScore: parseFloat(qtBiologyScoreInput.value),
+                myMarks: parseFloat(qtMyMarksInput.value)
+            };
+
+            // Basic validation
+            if (!newQTEntry.date || !newQTEntry.syllabus || isNaN(newQTEntry.fullMarks) || isNaN(newQTEntry.physicsScore) ||
+                isNaN(newQTEntry.chemistryScore) || isNaN(newQTEntry.biologyScore) || isNaN(newQTEntry.myMarks)) {
+                showStatusMessage("Please fill all Quarterly Tests fields with valid data.", 'error');
+                return;
+            }
+
+            const updatedQTData = [...quarterlyData, newQTEntry];
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/quarterlyData`, 'myQuarterlyDocument');
+
+            try {
+                await setDoc(docRef, { content: JSON.stringify(updatedQTData) });
+                console.log("Quarterly data successfully saved!");
+                showStatusMessage("Quarterly Tests data saved successfully!", 'success');
+                // Clear input fields
+                if (qtDateInput) qtDateInput.value = new Date().toISOString().split('T')[0];
+                if (qtSyllabusInput) qtSyllabusInput.value = '';
+                if (qtFullMarksInput) qtFullMarksInput.value = '';
+                if (qtPhysicsScoreInput) qtPhysicsScoreInput.value = '';
+                if (qtChemistryScoreInput) qtChemistryScoreInput.value = '';
+                if (qtBiologyScoreInput) qtBiologyScoreInput.value = '';
+                if (qtMyMarksInput) qtMyMarksInput.value = '';
+            } catch (error) {
+                console.error("Error saving Quarterly data:", error);
+                showStatusMessage("Error saving Quarterly Tests data. Please try again.", 'error');
+            }
+        }
+
+        /**
+         * Saves the Mission NEET data from the input fields to Firestore.
+         */
+        async function saveMissionNeetData() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save Mission NEET data.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+
+            const newMNEntry = {
+                date: mnDateInput.value,
+                syllabus: mnSyllabusInput.value,
+                fullMarks: parseFloat(mnFullMarksInput.value),
+                score: parseFloat(mnScoreInput.value)
+            };
+
+            // Basic validation
+            if (!newMNEntry.date || !newMNEntry.syllabus || isNaN(newMNEntry.fullMarks) || isNaN(newMNEntry.score)) {
+                showStatusMessage("Please fill all Mission NEET Tests fields with valid data.", 'error');
+                return;
+            }
+
+            const updatedMNData = [...missionNeetData, newMNEntry];
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/missionNeetData`, 'myMissionNeetDocument');
+
+            try {
+                // Store the stringified JSON
+                await setDoc(docRef, { content: JSON.stringify(updatedMNData) });
+                console.log("Mission NEET data successfully saved!");
+                showStatusMessage("Mission NEET Tests data saved successfully!", 'success');
+                // Clear input fields
+                if (mnDateInput) mnDateInput.value = new Date().toISOString().split('T')[0];
+                if (mnSyllabusInput) mnSyllabusInput.value = '';
+                if (mnFullMarksInput) mnFullMarksInput.value = '';
+                if (mnScoreInput) mnScoreInput.value = '';
+            } catch (error) {
+                console.error("Error saving Mission NEET data:", error);
+                showStatusMessage("Error saving Mission NEET Tests data. Please try again.", 'error');
+            }
+        }
+
+        /**
+         * Saves the chapter status (isCompleted) to Firestore.
+         */
+        async function saveChapterStatus() {
+            if (!db || !userId || userId === 'loading') {
+                console.error("Firestore not initialized or userId not available. Cannot save chapter status.");
+                showStatusMessage("App not ready. Please wait a moment.", 'error');
+                return;
+            }
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'chapterStatus');
+            try {
+                await setDoc(docRef, { content: JSON.stringify(chapterStatus) });
+                console.log("Chapter status saved to Firestore.");
+                showStatusMessage("Chapter status updated!", 'success');
+                // Re-draw syllabus progression chart after status update
+                if (tabContents.analytics && tabContents.analytics.classList.contains('active') && analyticsSubTabContents.syllabusProgression && analyticsSubTabContents.syllabusProgression.classList.contains('active')) {
+                    drawSyllabusProgressionChart();
+                }
+            } catch (error) {
+                console.error("Error saving chapter status:", error);
+                showStatusMessage("Error saving chapter status. Please try again.", 'error');
+            }
+        }
+
+        // --- Tab Switching Logic ---
+
+        /**
+         * Activates the selected main tab and deactivates others.
+         * @param {string} tabName - The name of the tab to activate (e.g., 'tests', 'regularData').
+         */
+        function activateMainTab(tabName) {
+            // Deactivate all main tab buttons and content
+            for (const key in tabButtons) {
+                if (tabButtons[key]) { // Add null check
+                    tabButtons[key].classList.remove('active');
+                } else {
+                    console.warn(`Tab button with key '${key}' not found.`);
+                }
+            }
+            for (const key in tabContents) {
+                if (tabContents[key]) { // Add null check
+                    tabContents[key].classList.remove('active');
+                } else {
+                    console.warn(`Tab content with key '${key}' not found.`);
+                }
+            }
+
+            // Activate the selected main tab button and content
+            if (tabButtons[tabName]) { // Add null check
+                tabButtons[tabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent tab button: ${tabName}`);
+                return; // Stop execution if main tab button is null
+            }
+            if (tabContents[tabName]) { // Add null check
+                tabContents[tabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent tab content: ${tabName}`);
+                return; // Stop execution if main tab content is null
+            }
+
+            // Specific actions based on tab
+            if (tabName === 'tests') {
+                activateTestEntrySubTab('ut');
+            } else if (tabName === 'analytics') {
+                activateAnalyticsSubTab('ut'); // Default to Unit Test analytics
+            } else if (tabName === 'goals') { // New goals tab logic
+                activateGoalsSubTab('physics'); // Default to Physics goals
+            } else if (tabName === 'aiSuggestions') {
+                // No automatic AI suggestion on tab switch, user clicks button
+                // aiPromptInput.value = ""; // Clear previous prompt
+                // aiResponseDisplay.textContent = "Ask for general suggestions...";
+                // conceptInput.value = "";
+                // conceptExplanationDisplay.textContent = "Your AI-powered concept explanation will appear here.";
+            }
+        }
+
+        /**
+         * Activates the selected test sub-tab and deactivates others.
+         * @param {string} subTabName - The name of the sub-tab to activate (e.g., 'ut', 'bbcts').
+         */
+        function activateTestEntrySubTab(subTabName) {
+            // Deactivate all sub-tab buttons and content
+            for (const key in testEntrySubTabButtons) {
+                if (testEntrySubTabButtons[key]) { // Add null check
+                    testEntrySubTabButtons[key].classList.remove('active');
+                } else {
+                    console.warn(`Test sub-tab button with key '${key}' not found.`);
+                }
+            }
+            for (const key in testEntrySubTabContents) {
+                if (testEntrySubTabContents[key]) { // Add null check
+                    testEntrySubTabContents[key].classList.remove('active');
+                } else {
+                    console.warn(`Test sub-tab content with key '${key}' not found.`);
+                }
+            }
+
+            // Activate the selected sub-tab button and content
+            if (testEntrySubTabButtons[subTabName]) { // Add null check
+                testEntrySubTabButtons[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent test sub-tab button: ${subTabName}`);
+                return;
+            }
+            if (testEntrySubTabContents[subTabName]) { // Add null check
+                testEntrySubTabContents[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent test sub-tab content: ${subTabName}`);
+                return;
+            }
+
+            // Set default dates for new entries
+            const today = new Date().toISOString().split('T')[0];
+            if (subTabName === 'ut') {
+                if (utDateInput) utDateInput.value = today;
+            } else if (subTabName === 'bbcts') {
+                if (bbctsDateInput) bbctsDateInput.value = today;
+            } else if (subTabName === 'quarterly') {
+                if (qtDateInput) qtDateInput.value = today;
+            } else if (subTabName === 'missionNeet') {
+                if (mnDateInput) mnDateInput.value = today;
+            }
+        }
+
+        /**
+         * Activates the selected analytics sub-tab and deactivates others.
+         * @param {string} subTabName - The name of the sub-tab to activate (e.g., 'ut', 'bbcts').
+         */
+        function activateAnalyticsSubTab(subTabName) {
+            // Deactivate all sub-tab buttons and content
+            for (const key in analyticsSubTabButtons) {
+                if (analyticsSubTabButtons[key]) { // Add null check
+                    analyticsSubTabButtons[key].classList.remove('active');
+                } else {
+                    console.warn(`Analytics sub-tab button with key '${key}' not found.`);
+                }
+            }
+            for (const key in analyticsSubTabContents) {
+                if (analyticsSubTabContents[key]) { // Add null check
+                    analyticsSubTabContents[key].classList.remove('active');
+                } else {
+                    console.warn(`Analytics sub-tab content with key '${key}' not found.`);
+                }
+            }
+
+            // Activate the selected sub-tab button and content
+            if (analyticsSubTabButtons[subTabName]) { // Add null check
+                analyticsSubTabButtons[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent analytics sub-tab button: ${subTabName}`);
+                return;
+            }
+            if (analyticsSubTabContents[subTabName]) { // Add null check
+                analyticsSubTabContents[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent analytics sub-tab content: ${subTabName}`);
+                return;
+            }
+
+            // Draw charts relevant to the active sub-tab
+            if (subTabName === 'syllabusProgression') {
+                drawSyllabusProgressionChart();
+            } else {
+                drawAllCharts();
+            }
+        }
+
+        /**
+         * Activates the selected goals sub-tab and renders chapters.
+         * @param {string} subTabName - 'physics', 'chemistry', or 'biology'.
+         */
+        function activateGoalsSubTab(subTabName) {
+            // Deactivate all goals sub-tab buttons and content
+            for (const key in goalsSubTabButtons) {
+                if (goalsSubTabButtons[key]) { // Add null check
+                    goalsSubTabButtons[key].classList.remove('active');
+                } else {
+                    console.warn(`Goals sub-tab button with key '${key}' not found.`);
+                }
+            }
+            for (const key in goalsSubTabContents) {
+                if (goalsSubTabContents[key]) { // Add null check
+                    goalsSubTabContents[key].classList.remove('active');
+                } else {
+                    console.warn(`Goals sub-tab content with key '${key}' not found.`);
+                }
+            }
+
+            // Activate the selected goals sub-tab button and content
+            if (goalsSubTabButtons[subTabName]) { // Add null check
+                goalsSubTabButtons[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent goals sub-tab button: ${subTabName}`);
+                return;
+            }
+            if (goalsSubTabContents[subTabName]) { // Add null check
+                goalsSubTabContents[subTabName].classList.add('active');
+            } else {
+                console.error(`Attempted to activate non-existent goals sub-tab content: ${subTabName}`);
+                return;
+            }
+
+            renderGoalsChapters(subTabName);
+        }
+
+        /**
+         * Renders the chapters for the given subject into the appropriate display div.
+         * @param {string} subject - 'physics', 'chemistry', or 'biology'.
+         */
+        function renderGoalsChapters(subject) {
+            let chaptersData = [];
+            let displayElement;
+            let subCategories = [];
+
+            if (subject === 'physics') {
+                chaptersData = physicsGoalsData;
+                displayElement = physicsGoalsDisplay;
+                subCategories = physicsChemistrySubCategories;
+            } else if (subject === 'chemistry') {
+                chaptersData = chemistryGoalsData;
+                displayElement = chemistryGoalsDisplay;
+                subCategories = physicsChemistrySubCategories;
+            } else if (subject === 'biology') {
+                chaptersData = biologyGoalsData;
+                displayElement = biologyGoalsDisplay;
+                subCategories = biologySubCategories;
+            } else {
+                return; // Invalid subject
+            }
+
+            if (!displayElement) { // Check if display element exists before proceeding
+                console.error(`Display element for ${subject} goals not found.`);
+                return;
+            }
+
+            displayElement.innerHTML = ''; // Clear previous content
+
+            if (chaptersData.length === 0) {
+                displayElement.textContent = `No ${subject} chapters loaded.`;
+                return;
+            }
+
+            // Display headers
+            const headerRow = document.createElement('div');
+            headerRow.classList.add('chapter-header');
+            const chapterNameHeader = document.createElement('div');
+            chapterNameHeader.textContent = "Chapter Name";
+            headerRow.appendChild(chapterNameHeader);
+
+            subCategories.forEach(cat => {
+                const catHeader = document.createElement('div');
+                catHeader.textContent = cat.name;
+                headerRow.appendChild(catHeader);
+            });
+            displayElement.appendChild(headerRow);
+
+
+            chaptersData.forEach(chapterObj => {
+                const chapterName = chapterObj['Chapter Name']; // Assuming 'Chapter Name' is the key
+                const chapterKey = `${subject}-${chapterName.replace(/\s|\(|\)/g, '_').replace(/_+/g, '_').toLowerCase()}`; // Unique key for chapter status
+
+                // Initialize chapter status if not present
+                if (!chapterStatus[chapterKey]) {
+                    chapterStatus[chapterKey] = {};
+                    subCategories.forEach(cat => {
+                        chapterStatus[chapterKey][cat.key] = { isCompleted: false, completionDate: null, aiMessage: '' };
+                    });
+                }
+
+                const chapterRow = document.createElement('div');
+                chapterRow.classList.add('chapter-row');
+
+                // Add chapter name column
+                const chapterNameCol = document.createElement('div');
+                chapterNameCol.textContent = chapterName;
+                chapterRow.appendChild(chapterNameCol);
+
+                // Add buttons for each sub-category
+                subCategories.forEach(cat => {
+                    const buttonContainer = document.createElement('div');
+                    const completionButton = document.createElement('button');
+                    completionButton.classList.add('chapter-button');
+                    const subCategoryStatus = chapterStatus[chapterKey][cat.key] || { isCompleted: false, completionDate: null, aiMessage: '' };
+
+                    if (subCategoryStatus.isCompleted) {
+                        completionButton.classList.add('completed');
+                        completionButton.textContent = subCategoryStatus.aiMessage || '✔'; // Use AI message or tick
+                    } else {
+                        completionButton.textContent = 'Mark Done'; // Default text
+                    }
+
+                    // Store keys as data attributes for easy access in event listener
+                    completionButton.dataset.chapterKey = chapterKey;
+                    completionButton.dataset.subCategoryKey = cat.key;
+                    completionButton.dataset.chapterName = chapterName; // Pass chapter name for AI prompt
+                    completionButton.dataset.subCategoryName = cat.name; // Pass sub-category name for AI prompt
+
+
+                    completionButton.addEventListener('click', async (event) => {
+                        const btn = event.target;
+                        const currentChapterKey = btn.dataset.chapterKey;
+                        const currentSubCategoryKey = btn.dataset.subCategoryKey;
+                        const currentChapterName = btn.dataset.chapterName;
+                        const currentSubCategoryName = btn.dataset.subCategoryName;
+
+                        // Ensure chapter and sub-category status exist
+                        if (!chapterStatus[currentChapterKey]) chapterStatus[currentChapterKey] = {};
+                        if (!chapterStatus[currentChapterKey][currentSubCategoryKey]) {
+                            chapterStatus[currentChapterKey][currentSubCategoryKey] = { isCompleted: false, completionDate: null, aiMessage: '' };
+                        }
+
+                        const currentStatus = chapterStatus[currentChapterKey][currentSubCategoryKey];
+
+                        if (!currentStatus.isCompleted) {
+                            showStatusMessage("Marking as done...", 'info');
+                            btn.disabled = true; // Disable button during AI call
+
+                            try {
+                                const prompt = `Generate a very short, encouraging 'done' message (max 10 words) with a celebratory emoji for completing the "${currentSubCategoryName}" part of the chapter "${currentChapterName}". Example: "Awesome work! ${currentSubCategoryName} for ${currentChapterName} mastered! 🎉"`;
+                                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                                const payload = { contents: chatHistory };
+                                const apiKey = ""; // Canvas will provide this in runtime
+                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                                const response = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                });
+                                const result = await response.json();
+                                let aiMessage = '✔'; // Default to tick if AI fails
+                                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                                    aiMessage = result.candidates[0].content.parts[0].text;
+                                }
+
+                                chapterStatus[currentChapterKey][currentSubCategoryKey] = {
+                                    isCompleted: true,
+                                    completionDate: new Date().toISOString().split('T')[0],
+                                    aiMessage: aiMessage
+                                };
+                                btn.classList.add('completed');
+                                btn.textContent = aiMessage;
+                                showStatusMessage("Task completed!", 'success');
+                            } catch (error) {
+                                console.error("Error generating AI message for chapter completion:", error);
+                                chapterStatus[currentChapterKey][currentSubCategoryKey] = {
+                                    isCompleted: true,
+                                    completionDate: new Date().toISOString().split('T')[0],
+                                    aiMessage: '✔' // Fallback
+                                };
+                                btn.classList.add('completed');
+                                btn.textContent = '✔';
+                                showStatusMessage("Task completed (AI message failed).", 'error');
+                            } finally {
+                                btn.disabled = false; // Re-enable button
+                                saveChapterStatus(); // Save status after update
+                            }
+                        } else {
+                            // If already completed, allow unmarking
+                            chapterStatus[currentChapterKey][currentSubCategoryKey] = {
+                                isCompleted: false,
+                                completionDate: null,
+                                aiMessage: ''
+                            };
+                            btn.classList.remove('completed');
+                            btn.textContent = 'Mark Done';
+                            showStatusMessage("Task unmarked.", 'info');
+                            saveChapterStatus(); // Save status after update
+                        }
+                    });
+                    buttonContainer.appendChild(completionButton);
+                    chapterRow.appendChild(buttonContainer);
+                });
+                displayElement.appendChild(chapterRow);
+            });
+        }
+
+
+        // Attach event listeners for main tab buttons
+        if (tabButtons.regularData) tabButtons.regularData.addEventListener('click', () => activateMainTab('regularData'));
+        if (tabButtons.tests) tabButtons.tests.addEventListener('click', () => activateMainTab('tests'));
+        if (tabButtons.analytics) tabButtons.analytics.addEventListener('click', () => activateMainTab('analytics'));
+        if (tabButtons.goals) tabButtons.goals.addEventListener('click', () => activateMainTab('goals')); // Renamed listener
+        if (tabButtons.aiSuggestions) tabButtons.aiSuggestions.addEventListener('click', () => activateMainTab('aiSuggestions'));
+
+        // Attach event listeners for test sub-tab buttons
+        if (testEntrySubTabButtons.ut) testEntrySubTabButtons.ut.addEventListener('click', () => activateTestEntrySubTab('ut'));
+        if (testEntrySubTabButtons.bbcts) testEntrySubTabButtons.bbcts.addEventListener('click', () => activateTestEntrySubTab('bbcts'));
+        if (testEntrySubTabButtons.quarterly) testEntrySubTabButtons.quarterly.addEventListener('click', () => activateTestEntrySubTab('quarterly'));
+        if (testEntrySubTabButtons.missionNeet) testEntrySubTabButtons.missionNeet.addEventListener('click', () => activateTestEntrySubTab('missionNeet'));
+
+        // Attach event listeners for analytics sub-tab buttons
+        if (analyticsSubTabButtons.ut) analyticsSubTabButtons.ut.addEventListener('click', () => activateAnalyticsSubTab('ut'));
+        if (analyticsSubTabButtons.bbcts) analyticsSubTabButtons.bbcts.addEventListener('click', () => activateAnalyticsSubTab('bbcts'));
+        if (analyticsSubTabButtons.quarterly) analyticsSubTabButtons.quarterly.addEventListener('click', () => activateAnalyticsSubTab('quarterly'));
+        if (analyticsSubTabButtons.missionNeetAnalytics) analyticsSubTabButtons.missionNeetAnalytics.addEventListener('click', () => activateAnalyticsSubTab('missionNeetAnalytics'));
+        if (analyticsSubTabButtons.syllabusProgression) analyticsSubTabButtons.syllabusProgression.addEventListener('click', () => activateAnalyticsSubTab('syllabusProgression')); // New listener
+
+        // Attach event listeners for goals sub-tab buttons
+        if (goalsSubTabButtons.physics) goalsSubTabButtons.physics.addEventListener('click', () => activateGoalsSubTab('physics'));
+        if (goalsSubTabButtons.chemistry) goalsSubTabButtons.chemistry.addEventListener('click', () => activateGoalsSubTab('chemistry'));
+        if (goalsSubTabButtons.biology) goalsSubTabButtons.biology.addEventListener('click', () => activateGoalsSubTab('biology'));
+
+        // --- Analytics (Chart.js Graphs) ---
+
+        /**
+         * Destroys an existing chart instance if it exists.
+         * @param {Chart} chartInstance - The Chart.js instance to destroy.
+         * @returns {null} - Returns null after destruction.
+         */
+        function destroyChart(chartInstance) {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            return null;
+        }
+
+        /**
+         * Draws a line chart for a given subject/data type using raw marks or percentages.
+         * @param {HTMLCanvasElement} canvas - The canvas element for the chart.
+         * @param {string} title - The title of the chart.
+         * @param {Array<Object>} data - The raw data array.
+         * @param {string} scoreKey - The key for the score (e.g., 'physicsScore', 'score').
+         * @param {string} fullMarksKey - The key for full marks (e.g., 'fullMarks').
+         * @param {Chart} existingInstance - The global variable holding the chart instance for this specific chart.
+         * @param {boolean} isPercentage - If true, calculate score as percentage of full marks.
+         * @returns {Chart} - The new Chart.js instance.
+         */
+        function drawLineChart(canvas, title, data, scoreKey, fullMarksKey, existingInstance, isPercentage = false) {
+            const labels = data.map(item => item.date);
+            let scores = data.map(item => item[scoreKey]);
+            let fullMarks = data.map(item => item[fullMarksKey]);
+
+            if (isPercentage) {
+                scores = data.map(item => (item[scoreKey] / item[fullMarksKey]) * 100);
+                fullMarks = data.map(() => 100); // Full marks is 100% for percentage graph
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart instance if it exists
+            if (existingInstance) {
+                existingInstance = destroyChart(existingInstance);
+            }
+
+            const yAxisLabel = isPercentage ? 'Percentage (%)' : 'Marks';
+
+            const newChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'My Score',
+                        data: scores,
+                        borderColor: '#4f46e5', /* Indigo */
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#4f46e5',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#4f46e5',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: 'Full Marks',
+                        data: fullMarks,
+                        borderColor: '#10b981', /* Green */
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#10b981',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = `${context.dataset.label}: ${context.raw}`;
+                                    if (isPercentage) {
+                                        label += '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: '#555'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yAxisLabel,
+                                color: '#555'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return isPercentage ? value + '%' : value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            return newChartInstance;
+        }
+
+
+        /**
+         * Draws all relevant charts based on the fetched data and active sub-tab.
+         */
+        function drawAllCharts() {
+            // Destroy all existing charts first to prevent overlaps
+            physicsChartUTInstance = destroyChart(physicsChartUTInstance);
+            chemistryChartUTInstance = destroyChart(chemistryChartUTInstance);
+            biologyChartUTInstance = destroyChart(biologyChartUTInstance);
+            physicsChartBBCTSInstance = destroyChart(physicsChartBBCTSInstance);
+            chemistryChartBBCTSInstance = destroyChart(chemistryChartBBCTSInstance);
+            biologyChartBBCTSInstance = destroyChart(biologyChartBBCTSInstance);
+            physicsChartQuarterlyInstance = destroyChart(physicsChartQuarterlyInstance);
+            chemistryChartQuarterlyInstance = destroyChart(chemistryChartQuarterlyInstance);
+            biologyChartQuarterlyInstance = destroyChart(biologyChartQuarterlyInstance);
+            missionNeetChartInstance = destroyChart(missionNeetChartInstance);
+            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance); // Ensure this is also destroyed
+
+            // Determine which sub-tab is active and draw charts accordingly
+            if (analyticsSubTabContents.ut && analyticsSubTabContents.ut.classList.contains('active')) {
+                utTestData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                if (utTestData.length > 0) {
+                    if (analyticsCanvasPhysicsUT) physicsChartUTInstance = drawLineChart(analyticsCanvasPhysicsUT, 'Physics Scores (Unit Tests)', utTestData, 'physicsScore', 'fullMarks', physicsChartUTInstance);
+                    if (analyticsCanvasChemistryUT) chemistryChartUTInstance = drawLineChart(analyticsCanvasChemistryUT, 'Chemistry Scores (Unit Tests)', utTestData, 'chemistryScore', 'fullMarks', chemistryChartUTInstance);
+                    if (analyticsCanvasBiologyUT) biologyChartUTInstance = drawLineChart(analyticsCanvasBiologyUT, 'Biology Scores (Unit Tests)', utTestData, 'biologyScore', 'fullMarks', biologyChartUTInstance);
+                } else {
+                    // Clear canvas if no data
+                    if (analyticsCanvasPhysicsUT) analyticsCanvasPhysicsUT.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsUT.width, analyticsCanvasPhysicsUT.height);
+                    if (analyticsCanvasChemistryUT) analyticsCanvasChemistryUT.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryUT.width, analyticsCanvasChemistryUT.height);
+                    if (analyticsCanvasBiologyUT) analyticsCanvasBiologyUT.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyUT.width, analyticsCanvasBiologyUT.height);
+                    showStatusMessage("No Unit Tests data available to draw graphs.", 'info');
+                }
+            } else if (analyticsSubTabContents.bbcts && analyticsSubTabContents.bbcts.classList.contains('active')) {
+                bbctsData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                if (bbctsData.length > 0) {
+                    if (analyticsCanvasPhysicsBBCTS) physicsChartBBCTSInstance = drawLineChart(analyticsCanvasPhysicsBBCTS, 'Physics Scores (BB Classes Test Series)', bbctsData, 'physicsScore', 'fullMarks', physicsChartBBCTSInstance);
+                    if (analyticsCanvasChemistryBBCTS) chemistryChartBBCTSInstance = drawLineChart(analyticsCanvasChemistryBBCTS, 'Chemistry Scores (BB Classes Test Series)', bbctsData, 'chemistryScore', 'fullMarks', chemistryChartBBCTSInstance);
+                    if (analyticsCanvasBiologyBBCTS) biologyChartBBCTSInstance = drawLineChart(analyticsCanvasBiologyBBCTS, 'Biology Scores (BB Classes Test Series)', bbctsData, 'biologyScore', 'fullMarks', biologyChartBBCTSInstance);
+                } else {
+                    // Clear canvas if no data
+                    if (analyticsCanvasPhysicsBBCTS) analyticsCanvasPhysicsBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsBBCTS.width, analyticsCanvasPhysicsBBCTS.height);
+                    if (analyticsCanvasChemistryBBCTS) analyticsCanvasChemistryBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryBBCTS.width, analyticsCanvasChemistryBBCTS.height);
+                    if (analyticsCanvasBiologyBBCTS) analyticsCanvasBiologyBBCTS.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyBBCTS.width, analyticsCanvasBiologyBBCTS.height);
+                    showStatusMessage("No BB Classes Test Series data available to draw graphs.", 'info');
+                }
+            } else if (analyticsSubTabContents.quarterly && analyticsSubTabContents.quarterly.classList.contains('active')) {
+                quarterlyData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                if (quarterlyData.length > 0) {
+                    if (analyticsCanvasPhysicsQuarterly) physicsChartQuarterlyInstance = drawLineChart(analyticsCanvasPhysicsQuarterly, 'Physics Scores (Quarterly Tests)', quarterlyData, 'physicsScore', 'fullMarks', physicsChartQuarterlyInstance);
+                    if (analyticsCanvasChemistryQuarterly) chemistryChartQuarterlyInstance = drawLineChart(analyticsCanvasChemistryQuarterly, 'Chemistry Scores (Quarterly Tests)', quarterlyData, 'chemistryScore', 'fullMarks', chemistryChartQuarterlyInstance);
+                    if (analyticsCanvasBiologyQuarterly) biologyChartQuarterlyInstance = drawLineChart(analyticsCanvasBiologyQuarterly, 'Biology Scores (Quarterly Tests)', quarterlyData, 'biologyScore', 'fullMarks', biologyChartQuarterlyInstance);
+                } else {
+                    // Clear canvas if no data
+                    if (analyticsCanvasPhysicsQuarterly) analyticsCanvasPhysicsQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasPhysicsQuarterly.width, analyticsCanvasPhysicsQuarterly.height);
+                    if (analyticsCanvasChemistryQuarterly) analyticsCanvasChemistryQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasChemistryQuarterly.width, analyticsCanvasChemistryQuarterly.height);
+                    if (analyticsCanvasBiologyQuarterly) analyticsCanvasBiologyQuarterly.getContext('2d').clearRect(0, 0, analyticsCanvasBiologyQuarterly.width, analyticsCanvasBiologyQuarterly.height);
+                    showStatusMessage("No Quarterly Tests data available to draw graphs.", 'info');
+                }
+            } else if (analyticsSubTabContents.missionNeetAnalytics && analyticsSubTabContents.missionNeetAnalytics.classList.contains('active')) {
+                missionNeetData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                if (missionNeetData.length > 0) {
+                    if (analyticsCanvasMissionNeet) missionNeetChartInstance = drawLineChart(analyticsCanvasMissionNeet, 'Mission NEET Tests Scores (Percentage)', missionNeetData, 'score', 'fullMarks', missionNeetChartInstance, true);
+                } else {
+                    // Clear canvas if no data
+                    if (analyticsCanvasMissionNeet) analyticsCanvasMissionNeet.getContext('2d').clearRect(0, 0, analyticsCanvasMissionNeet.width, analyticsCanvasMissionNeet.height);
+                    showStatusMessage("No Mission NEET Tests data available to draw graphs.", 'info');
+                }
+            }
+        }
+
+        /**
+         * Draws the Syllabus Progression Chart.
+         */
+        function drawSyllabusProgressionChart() {
+            syllabusProgressionChartInstance = destroyChart(syllabusProgressionChartInstance); // Destroy existing
+
+            const allChapters = [...physicsGoalsData, ...chemistryGoalsData, ...biologyGoalsData];
+            const completionDates = {}; // {date: count}
+
+            // Populate completionDates from chapterStatus
+            for (const chapterKey in chapterStatus) {
+                for (const subCategoryKey in chapterStatus[chapterKey]) {
+                    if (chapterStatus[chapterKey][subCategoryKey].isCompleted && chapterStatus[chapterKey][subCategoryKey].completionDate) {
+                        const date = chapterStatus[chapterKey][subCategoryKey].completionDate;
+                        completionDates[date] = (completionDates[date] || 0) + 1;
+                    }
+                }
+            }
+
+            const sortedDates = Object.keys(completionDates).sort();
+            const cumulativeCompleted = [];
+            let currentCumulative = 0;
+
+            // Calculate cumulative sum
+            sortedDates.forEach(date => {
+                currentCumulative += completionDates[date];
+                cumulativeCompleted.push(currentCumulative);
+            });
+
+            const ctx = syllabusProgressionCanvas.getContext('2d');
+
+            syllabusProgressionChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Tasks Completed', // Changed label from Chapters to Tasks
+                        data: cumulativeCompleted,
+                        borderColor: '#059669', /* Emerald Green */
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#059669',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#059669',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Syllabus Progression Over Time (Tasks Completed)',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw} Tasks Completed`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: '#555'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of Tasks', // Changed label from Chapters to Tasks
+                                color: '#555'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0 // Ensure whole numbers for chapter count
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // --- AI Performance Insights (New Gemini API Integration) ---
+
+        async function getAIPerformanceInsights() {
+            if (utTestData.length === 0 && bbctsData.length === 0 && quarterlyData.length === 0 && missionNeetData.length === 0) {
+                showStatusMessage("No test data available for AI analysis. Please enter some data.", 'error');
+                if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "No test data available for AI analysis.";
+                return;
+            }
+
+            if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "Generating AI performance analysis...";
+            if (getAIPerformanceInsightsButton) getAIPerformanceInsightsButton.disabled = true;
+            showStatusMessage("Getting AI performance insights...", 'info');
+
+            try {
+                let prompt = `Analyze the following test performance data. Identify strengths, weaknesses, and suggest actionable areas for improvement. Provide a concise summary and specific recommendations.\n\n`;
+                prompt += `--- Unit Test Data ---\n${JSON.stringify(utTestData, null, 2)}\n\n`;
+                prompt += `--- BBCTS Data ---\n${JSON.stringify(bbctsData, null, 2)}\n\n`;
+                prompt += `--- Quarterly Test Data ---\n${JSON.stringify(quarterlyData, null, 2)}\n\n`;
+                prompt += `--- Mission NEET Data ---\n${JSON.stringify(missionNeetData, null, 2)}\n\n`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = text;
+                    showStatusMessage("AI performance analysis received!", 'success');
+                } else {
+                    if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "Could not get AI performance analysis. Please try again.";
+                    console.error("Unexpected AI response structure for performance analysis:", result);
+                    showStatusMessage("Failed to get AI performance analysis.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching AI performance analysis:", error);
+                if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "An error occurred while fetching AI performance analysis.";
+                showStatusMessage("Error fetching AI performance analysis.", 'error');
+            } finally {
+                if (getAIPerformanceInsightsButton) getAIPerformanceInsightsButton.disabled = false;
+            }
+        }
+
+        // Event listener for AI Performance Insights button
+        if (getAIPerformanceInsightsButton) getAIPerformanceInsightsButton.addEventListener('click', getAIPerformanceInsights);
+
+        // --- AI Productivity Insights (New Gemini API Integration) ---
+        async function getAIProductivityInsights() {
+            if (regularDataLogs.length === 0) {
+                showStatusMessage("No daily log data available for AI analysis. Please enter some logs.", 'error');
+                if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "No daily log data available for AI analysis.";
+                return;
+            }
+
+            if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "Generating AI productivity analysis...";
+            if (getAIProductivityInsightsButton) getAIProductivityInsightsButton.disabled = true;
+            showStatusMessage("Getting AI productivity insights...", 'info');
+
+            try {
+                let prompt = `Analyze the following daily log entries. Identify patterns in study topics, time spent, and backlogs. Provide insights on productivity, highlight areas for improvement, and suggest actionable tips for better time management and topic coverage.\n\n`;
+                prompt += `--- Daily Log Entries ---\n${JSON.stringify(regularDataLogs, null, 2)}\n\n`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = text;
+                    showStatusMessage("AI productivity analysis received!", 'success');
+                } else {
+                    if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "Could not get AI productivity analysis. Please try again.";
+                    console.error("Unexpected AI response structure for productivity analysis:", result);
+                    showStatusMessage("Failed to get AI productivity analysis.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching AI productivity analysis:", error);
+                if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "An error occurred while fetching AI productivity analysis.";
+                showStatusMessage("Error fetching AI productivity analysis.", 'error');
+            } finally {
+                if (getAIProductivityInsightsButton) getAIProductivityInsightsButton.disabled = false;
+            }
+        }
+
+        // Event listener for AI Productivity Insights button
+        if (getAIProductivityInsightsButton) getAIProductivityInsightsButton.addEventListener('click', getAIProductivityInsights);
+
+
+        // --- AI General Suggestions ---
+
+        /**
+         * Fetches general AI suggestions from the Gemini API.
+         */
+        async function getAISuggestion() {
+            const prompt = aiPromptInput.value.trim();
+            if (aiResponseDisplay) aiResponseDisplay.textContent = "Generating AI suggestions..."; // Show loading state immediately
+            showStatusMessage("Getting AI suggestion...", 'info');
+
+            try {
+                // Include current data in the prompt for more relevant suggestions
+                let fullPrompt = `Based on the following data, please provide a suggestion for: "${prompt || 'general study advice'}"\n\n`;
+                fullPrompt += `--- Regular Daily Logs ---\n${JSON.stringify(regularDataLogs, null, 2) || "No regular data available."}\n\n`;
+                fullPrompt += `--- Unit Test Data ---\n${JSON.stringify(utTestData, null, 2) || "No UT test data available."}\n\n`;
+                fullPrompt += `--- BBCTS Data ---\n${JSON.stringify(bbctsData, null, 2) || "No BBCTS test data available."}\n\n`;
+                fullPrompt += `--- Quarterly Test Data ---\n${JSON.stringify(quarterlyData, null, 2) || "No Quarterly test data available."}\n\n`;
+                fullPrompt += `--- Mission NEET Data ---\n${JSON.stringify(missionNeetData, null, 2) || "No Mission NEET data available."}\n\n`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (aiResponseDisplay) aiResponseDisplay.textContent = text;
+                    showStatusMessage("AI suggestion received!", 'success');
+                } else {
+                    if (aiResponseDisplay) aiResponseDisplay.textContent = "Could not get a suggestion. Please try again.";
+                    console.error("Unexpected AI response structure:", result);
+                    showStatusMessage("Failed to get AI suggestion.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching AI suggestion:", error);
+                if (aiResponseDisplay) aiResponseDisplay.textContent = "An error occurred while fetching AI suggestions.";
+                showStatusMessage("Error fetching AI suggestion.", 'error');
+            }
+        }
+        if (getAISuggestionButton) getAISuggestionButton.addEventListener('click', getAISuggestion);
+
+
+        // --- NEW: Concept Explainer Function ---
+        async function explainConcept() {
+            const concept = conceptInput.value.trim();
+            if (!concept) {
+                showStatusMessage("Please enter a concept or doubt to explain.", 'error');
+                if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Please enter a concept or doubt to explain.";
+                return;
+            }
+
+            if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Generating explanation...";
+            if (explainConceptButton) explainConceptButton.disabled = true;
+            showStatusMessage("Getting concept explanation...", 'info');
+
+            try {
+                const prompt = `Explain the concept of "${concept}" in detail, as if you are teaching a NEET UG aspirant. Focus on clarity, accuracy, and include any relevant examples, diagrams (describe them), or common misconceptions. Keep the explanation concise but comprehensive.`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = text;
+                    showStatusMessage("Concept explained!", 'success');
+                } else {
+                    if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Could not explain the concept. Please try again.";
+                    console.error("Unexpected AI response structure for concept explanation:", result);
+                    showStatusMessage("Failed to explain concept.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching concept explanation:", error);
+                if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "An error occurred while fetching the explanation.";
+                showStatusMessage("Error fetching concept explanation.", 'error');
+            } finally {
+                if (explainConceptButton) explainConceptButton.disabled = false;
+            }
+        }
+        if (explainConceptButton) explainConceptButton.addEventListener('click', explainConcept);
+
+
+        // --- NEW: Revision Topic Suggester Function ---
+        async function suggestRevisionTopics() {
+            if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Analyzing your data and generating revision suggestions...";
+            if (suggestRevisionTopicsButton) suggestRevisionTopicsButton.disabled = true;
+            showStatusMessage("Generating revision topics...", 'info');
+
+            try {
+                let prompt = `Based on the following NEET UG study data, suggest 3-5 specific topics or chapters for revision. Explain briefly why each topic is suggested (e.g., low scores, not reviewed recently). Prioritize topics that appear to be weak areas or have been neglected.
+
+                --- Your Unit Test Data ---\n${JSON.stringify(utTestData, null, 2) || "No Unit Test data."}\n\n
+                --- Your BB Classes Test Series Data ---\n${JSON.stringify(bbctsData, null, 2) || "No BBCTS data."}\n\n
+                --- Your Quarterly Test Data ---\n${JSON.stringify(quarterlyData, null, 2) || "No Quarterly Test data."}\n\n
+                --- Your Mission NEET Test Data ---\n${JSON.stringify(missionNeetData, null, 2) || "No Mission NEET data."}\n\n
+                --- Your Daily Log Entries (recent topics studied/backlogs) ---\n${JSON.stringify(regularDataLogs.slice(-5), null, 2) || "No recent daily logs."} (showing last 5 entries)\n\n
+                --- Your Syllabus Completion Status (completed tasks by chapter) ---\n${JSON.stringify(chapterStatus, null, 2) || "No chapter completion data."}\n\n
+                `;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = text;
+                    showStatusMessage("Revision suggestions received!", 'success');
+                } else {
+                    if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Could not generate revision suggestions. Please try again or add more data.";
+                    console.error("Unexpected AI response structure for revision suggestions:", result);
+                    showStatusMessage("Failed to get revision suggestions.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching revision suggestions:", error);
+                if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "An error occurred while fetching revision suggestions.";
+                showStatusMessage("Error fetching revision suggestions.", 'error');
+            } finally {
+                if (suggestRevisionTopicsButton) suggestRevisionTopicsButton.disabled = false;
+            }
+        }
+        if (suggestRevisionTopicsButton) suggestRevisionTopicsButton.addEventListener('click', suggestRevisionTopics);
+
+        // --- NEW: Mock Test Question Generator Function ---
+        async function generatePracticeQuestions() {
+            const subject = questionSubjectSelect.value;
+            const topic = questionTopicInput.value.trim();
+
+            if (!subject || !topic) {
+                showStatusMessage("Please select a subject and enter a topic to generate questions.", 'error');
+                if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Please select a subject and enter a topic.";
+                return;
+            }
+
+            if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Generating practice questions...";
+            if (generateQuestionsButton) generateQuestionsButton.disabled = true;
+            showStatusMessage("Generating questions...", 'info');
+
+            try {
+                const prompt = `Generate 3 multiple-choice questions (MCQs) for NEET UG aspirants on the topic of "${topic}" in "${subject}". For each question, provide 4 options (A, B, C, D), indicate the correct answer, and give a brief explanation for the correct answer. Format the output clearly with Q1, Q2, Q3, then options, then Answer: [Correct Option], and then Explanation: [Explanation].`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = text;
+                    showStatusMessage("Questions generated!", 'success');
+                } else {
+                    if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Could not generate questions. Please try again.";
+                    console.error("Unexpected AI response structure for question generation:", result);
+                    showStatusMessage("Failed to generate questions.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching questions:", error);
+                if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "An error occurred while generating questions.";
+                showStatusMessage("Error generating questions.", 'error');
+            } finally {
+                if (generateQuestionsButton) generateQuestionsButton.disabled = false;
+            }
+        }
+        if (generateQuestionsButton) generateQuestionsButton.addEventListener('click', generatePracticeQuestions);
+
+
+        // --- NEET Countdown Logic ---
+        function getNeetUGDate() {
+            const year = 2026;
+            const month = 4; // May is 4 (0-indexed)
+            let date = new Date(year, month, 1);
+            // Find the first Sunday of May
+            while (date.getDay() !== 0) { // 0 is Sunday
+                date.setDate(date.getDate() + 1);
+            }
+            return date;
+        }
+
+        const neetUGDate = getNeetUGDate();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = neetUGDate.getTime() - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if (distance < 0) {
+                if (countdownTimerDisplay) countdownTimerDisplay.textContent = "NEET UG 2026 has begun!";
+                clearInterval(countdownInterval);
+            } else {
+                if (countdownTimerDisplay) countdownTimerDisplay.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+        }
+
+        let countdownInterval = setInterval(updateCountdown, 1000);
+
+        // --- Motivational Quote Logic ---
+        async function displayRandomQuoteAndSave() {
+            const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+            const selectedQuote = motivationalQuotes[randomIndex];
+            if (motivationalQuoteDisplay) { // Added null check
+                motivationalQuoteDisplay.textContent = `"${selectedQuote}"`;
+            }
+
+
+            const today = new Date().toISOString().split('T')[0];
+            const quoteStateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appState`, 'quoteState');
+            try {
+                await setDoc(quoteStateDocRef, {
+                    lastQuoteDate: today,
+                    lastQuoteIndex: randomIndex
+                });
+                console.log("Quote state saved to Firestore.");
+            } catch (error) {
+                console.error("Error saving quote state:", error);
+            }
+        }
+
+        // --- AI Goals Insights ---
+        async function getAIGoalsInsights() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            // Calculate total and completed tasks across all chapters and sub-categories
+            [physicsGoalsData, chemistryGoalsData, biologyGoalsData].forEach(subjectData => {
+                subjectData.forEach(chapterObj => {
+                    const chapterName = chapterObj['Chapter Name'];
+                    const subject = subjectData === physicsGoalsData ? 'physics' : (subjectData === chemistryGoalsData ? 'chemistry' : 'biology');
+                    const chapterKey = `${subject}-${chapterName.replace(/\s|\(|\)/g, '_').replace(/_+/g, '_').toLowerCase()}`;
+
+                    const subCategoriesForSubject = subject === 'physics' || subject === 'chemistry' ? physicsChemistrySubCategories : biologySubCategories;
+
+                    subCategoriesForSubject.forEach(cat => {
+                        totalTasks++;
+                        if (chapterStatus[chapterKey] && chapterStatus[chapterKey][cat.key] && chapterStatus[chapterKey][cat.key].isCompleted) {
+                            completedTasks++;
+                        }
+                    });
+                });
+            });
+
+
+            if (totalTasks === 0) {
+                if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "No syllabus data loaded to analyze. Please ensure chapters are loaded.";
+                showStatusMessage("No syllabus data loaded.", 'error');
+                return;
+            }
+
+            if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "Generating AI progress insights...";
+            if (getAIGoalsInsightsButton) getAIGoalsInsightsButton.disabled = true;
+            showStatusMessage("Getting AI progress insights...", 'info');
+
+            try {
+                const completionPercentage = (completedTasks / totalTasks) * 100;
+                const remainingTasks = totalTasks - completedTasks;
+
+                // Define target completion date (March 7, 2026, as first week of March)
+                const targetDate = new Date('2026-03-07');
+                const now = new Date();
+                const daysRemainingUntilTarget = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
+
+                let paceMessage = "";
+                if (daysRemainingUntilTarget > 0 && remainingTasks > 0) {
+                    const tasksPerDayNeeded = remainingTasks / daysRemainingUntilTarget;
+                    paceMessage = `To complete the remaining ${remainingTasks} tasks by March 7, 2026, you need to cover approximately ${tasksPerDayNeeded.toFixed(2)} tasks per day.`;
+                } else if (remainingTasks === 0) {
+                    paceMessage = "You've completed all tasks! Excellent work!";
+                } else {
+                    paceMessage = "Keep up the great work!"; // If target date passed or no tasks left
+                }
+
+
+                let prompt = `I have completed ${completedTasks} out of ${totalTasks} syllabus tasks (chapters + sub-categories) for NEET UG 2026. This is ${completionPercentage.toFixed(2)}% of the syllabus tasks. I have ${remainingTasks} tasks left. ${paceMessage} Provide an encouraging message about my progress and how much farther I have until completion. Keep it concise and motivating.`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this in runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = text;
+                    showStatusMessage("AI progress insights received!", 'success');
+                } else {
+                    if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "Could not get AI progress insights. Please try again.";
+                    console.error("Unexpected AI response structure for goals analysis:", result);
+                    showStatusMessage("Failed to get AI progress insights.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching AI progress insights:", error);
+                if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "An error occurred while fetching AI progress insights.";
+                showStatusMessage("Error fetching AI progress insights.", 'error');
+            } finally {
+                if (getAIGoalsInsightsButton) getAIGoalsInsightsButton.disabled = false;
+            }
+        }
+
+
+        // --- Event Listeners and Initial Setup ---
+
+        // Event listeners for save buttons
+        if (saveRegularDataButton) saveRegularDataButton.addEventListener('click', saveRegularData);
+        if (saveUTButton) saveUTButton.addEventListener('click', saveUTData);
+        if (saveBBCTSButton) saveBBCTSButton.addEventListener('click', saveBBCTSData);
+        if (saveQuarterlyButton) saveQuarterlyButton.addEventListener('click', saveQuarterlyData);
+        if (saveMissionNeetButton) saveMissionNeetButton.addEventListener('click', saveMissionNeetData);
+        if (getAIGoalsInsightsButton) getAIGoalsInsightsButton.addEventListener('click', getAIGoalsInsights); // New AI Goals button
+
+
+        // Function to load goals data (now hardcoded for Chemistry, and will be for Physics/Biology)
+        async function loadGoalsData() {
+            showStatusMessage("Loading syllabus data...", 'info');
+            try {
+                // Hardcode Chemistry chapters
+                chemistryGoalsData = [
+                    { 'Chapter Name': 'Some Basic Concepts of Chemistry' },
+                    { 'Chapter Name': 'Structure of Atom' },
+                    { 'Chapter Name': 'Classification of Elements and Periodicity in Properties' },
+                    { 'Chapter Name': 'Chemical Bonding and Molecular Structure' },
+                    { 'Chapter Name': 'Thermodynamics' },
+                    { 'Chapter Name': 'Equilibrium' },
+                    { 'Chapter Name': 'Redox Reactions' },
+                    { 'Chapter Name': 'Some p-Block Elements' },
+                    { 'Chapter Name': 'Organic Chemistry - Some Basic Principles and Techniques' },
+                    { 'Chapter Name': 'Hydrocarbons' },
+                    { 'Chapter Name': 'Solutions' },
+                    { 'Chapter Name': 'Electrochemistry' },
+                    { 'Chapter Name': 'Chemical Kinetics' },
+                    { 'Chapter Name': 'The p-Block Element' },
+                    { 'Chapter Name': 'The d- and f-Block Elements' },
+                    { 'Chapter Name': 'Coordination Compounds' },
+                    { 'Chapter Name': 'Haloalkanes and Haloarenes' },
+                    { 'Chapter Name': 'Alcohols, Phenols and Ethers' },
+                    { 'Chapter Name': 'Aldehydes, Ketones and Carboxylic Acids' },
+                    { 'Chapter Name': 'Amines' },
+                    { 'Chapter Name': 'Biomolecules' }
+                ];
+
+                // Hardcode Physics chapters
+                physicsGoalsData = [
+                    { 'Chapter Name': 'Units and Measurements' },
+                    { 'Chapter Name': 'Motion in a Straight Line' },
+                    { 'Chapter Name': 'Motion in a Plane' },
+                    { 'Chapter Name': 'Laws of Motion' },
+                    { 'Chapter Name': 'Work, Energy and Power' },
+                    { 'Chapter Name': 'System of Particles and Rotational Motion' },
+                    { 'Chapter Name': 'Gravitation' },
+                    { 'Chapter Name': 'Mechanical Properties of Solids' },
+                    { 'Chapter Name': 'Mechanical Properties of Fluids' },
+                    { 'Chapter Name': 'Thermal Properties of Matter' },
+                    { 'Chapter Name': 'Thermodynamics' },
+                    { 'Chapter Name': 'Kinetic Theory' },
+                    { 'Chapter Name': 'Oscillations' },
+                    { 'Chapter Name': 'Waves' },
+                    { 'Chapter Name': 'Electric Charges and Fields' },
+                    { 'Chapter Name': 'Electrostatic Potential and Capacitance' },
+                    { 'Chapter Name': 'Current Electricity' },
+                    { 'Chapter Name': 'Moving Charges and Magnetism' },
+                    { 'Chapter Name': 'Magnetism and Matter' },
+                    { 'Chapter Name': 'Electromagnetic Induction' },
+                    { 'Chapter Name': 'Alternating Current' },
+                    { 'Chapter Name': 'Electromagnetic Waves' },
+                    { 'Chapter Name': 'Ray Optics and Optical Instruments' },
+                    { 'Chapter Name': 'Wave Optics' },
+                    { 'Chapter Name': 'Dual Nature of Radiation and Matter' },
+                    { 'Chapter Name': 'Atoms' },
+                    { 'Chapter Name': 'Nuclei' },
+                    { 'Chapter Name': 'Semiconductor Electronics: Materials, Devices and Simple Circuits' }
+                ];
+
+                // Hardcode Biology chapters
+                biologyGoalsData = [
+                    { 'Chapter Name': 'The Living World' },
+                    { 'Chapter Name': 'Biological Classification' },
+                    { 'Chapter Name': 'Plant Kingdom' },
+                    { 'Chapter Name': 'Animal Kingdom' },
+                    { 'Chapter Name': 'Morphology of Flowering Plants' },
+                    { 'Chapter Name': 'Anatomy of Flowering Plants' },
+                    { 'Chapter Name': 'Structural Organisation in Animals' },
+                    { 'Chapter Name': 'Cell - The Unit of Life' },
+                    { 'Chapter Name': 'Biomolecules' },
+                    { 'Chapter Name': 'Cell Cycle and Cell Division' },
+                    { 'Chapter Name': 'Photosynthesis in Higher Plants' },
+                    { 'Chapter Name': 'Respiration in Plants' },
+                    { 'Chapter Name': 'Plant Growth and Development' },
+                    { 'Chapter Name': 'Breathing and Exchange of Gases' },
+                    { 'Chapter Name': 'Body Fluids and Circulation' },
+                    { 'Chapter Name': 'Excretory Products and Their Elimination' },
+                    { 'Chapter Name': 'Locomotion and Movement' },
+                    { 'Chapter Name': 'Neural Control and Coordination' },
+                    { 'Chapter Name': 'Chemical Coordination and Integration' },
+                    { 'Chapter Name': 'Sexual Reproduction in Flowering Plants' },
+                    { 'Chapter Name': 'Human Reproduction' },
+                    { 'Chapter Name': 'Reproductive Health' },
+                    { 'Chapter Name': 'Principles of Inheritance and Variation' },
+                    { 'Chapter Name': 'Molecular Basis of Inheritance' },
+                    { 'Chapter Name': 'Evolution' },
+                    { 'Chapter Name': 'Human Health and Disease' },
+                    { 'Chapter Name': 'Microbes in Human Welfare' },
+                    { 'Chapter Name': 'Biotechnology - Principles and Processes' },
+                    { 'Chapter Name': 'Biotechnology and Its Applications' },
+                    { 'Chapter Name': 'Organisms and Populations' },
+                    { 'Chapter Name': 'Ecosystem' },
+                    { 'Chapter Name': 'Biodiversity and Conservation' }
+                ];
+
+
+                console.log("Physics Goals Data:", physicsGoalsData);
+                console.log("Chemistry Goals Data:", chemistryGoalsData);
+                console.log("Biology Goals Data:", biologyGoalsData);
+
+                // Render chapters for the currently active goals sub-tab
+                // This will be called again by setupDataListeners for chapterStatus
+                renderGoalsChapters('physics'); // Render default physics chapters on load
+
+                showStatusMessage("Syllabus data loaded successfully!", 'success');
+            } catch (error) {
+                console.error("Error loading or parsing syllabus data:", error);
+                showStatusMessage("Error loading syllabus data. Check console.", 'error');
+            }
+        }
+
+
+        // Initialize Firebase and set default tab when the window loads
+        window.onload = () => {
+            initializeFirebase();
+            loadGoalsData(); // Load chapter data
+            activateMainTab('regularData'); // Set 'Daily Routine' as the default active main tab
+            // Set today's date as default for daily log and all test entries
+            const today = new Date().toISOString().split('T')[0];
+            if (logDateInput) logDateInput.value = today;
+            if (utDateInput) utDateInput.value = today;
+            if (bbctsDateInput) bbctsDateInput.value = today;
+            if (qtDateInput) qtDateInput.value = today;
+            if (mnDateInput) mnDateInput.value = today;
+
+            // Initial countdown update
+            updateCountdown();
+        };
+
+        // Adjust canvas size on window resize to make it responsive
+        window.addEventListener('resize', () => {
+            // Destroy and redraw charts to ensure responsiveness
+            if (tabContents.analytics && tabContents.analytics.classList.contains('active')) {
+                if (analyticsSubTabContents.syllabusProgression && analyticsSubTabContents.syllabusProgression.classList.contains('active')) {
+                    drawSyllabusProgressionChart();
+                } else {
+                    drawAllCharts();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
