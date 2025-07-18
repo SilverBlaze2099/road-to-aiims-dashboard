@@ -1529,6 +1529,7 @@
 
         // Default selected sub-categories (all visible initially)
         let selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+        let selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
         let selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
 
         // Your actual Firebase configuration (replace with your copied config from Firebase console)
@@ -1539,7 +1540,9 @@
           storageBucket: "my-neet-tracker-app.firebasestorage.app",
           messagingSenderId: "931350823768",
           appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d",
-          measurementId: "G-3WEYVYQRYE" // Include if provided by Firebase
+          measurementId: "G-3WEYVYQRYE", // Include if provided by Firebase
+          experimentalForceLongPolling: true, // Add this line
+          experimentalAutoDetectLongPolling: true // Add this line
         };
 
         // Use your Firebase project ID as the appId for Firestore paths
@@ -1887,14 +1890,39 @@
          * Initializes Firebase and sets up authentication listener.
          */
         function initializeQuotaCharts() {
+            // Clear any existing chart instances
+            Object.values(mcqChartInstances).forEach(destroyChart);
+            
+            // Reset chart instances
+            mcqChartInstances = {
+                physics: null,
+                chemistry: null,
+                biology: null
+            };
+
+            // Initialize canvases
             ['physics', 'chemistry', 'biology'].forEach(subject => {
                 const container = document.getElementById(`${subject}MCQQuotaChart`);
-                if (container && !container.querySelector('canvas')) {
+                if (container) {
+                    // Remove any existing canvas
+                    const existingCanvas = container.querySelector('canvas');
+                    if (existingCanvas) {
+                        container.removeChild(existingCanvas);
+                    }
+                    
+                    // Create new canvas
                     const canvas = document.createElement('canvas');
-                    container.appendChild(canvas);
+                    canvas.id = `${subject}MCQQuotaCanvas`;
+                    container.insertBefore(canvas, container.firstChild);
                     chartCanvases[subject] = canvas;
                 }
             });
+        }
+
+        function destroyChart(chartInstance) {
+            if (chartInstance && typeof chartInstance.destroy === 'function') {
+                chartInstance.destroy();
+            }
         }
 
         function drawCircularProgressChart(canvasElement, current, target, labelText, color, chartInstance) {
@@ -1902,16 +1930,29 @@
                 console.warn('Canvas element not found');
                 return null;
             }
-            
-            // Destroy existing chart instance if it exists
-            if (chartInstance) {
-                chartInstance.destroy();
+
+            // Get the existing canvas or create a new one
+            let canvas = canvasElement.querySelector('canvas');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvasElement.appendChild(canvas);
             }
+
+            // Destroy existing chart instance if it exists
+            destroyChart(chartInstance);
             
-            const ctx = canvasElement.getContext('2d');
+            const ctx = canvas.getContext('2d');
 
             const percentage = target > 0 ? (current / target) * 100 : 0;
             const dataValue = Math.min(percentage, 100);
+
+            // Only try to update text if a valid label element was provided
+            if (labelText) {
+                const textElement = document.getElementById(labelText);
+                if (textElement) {
+                    textElement.textContent = `${current}/${target}`;
+                }
+            }
 
             const newChartInstance = new Chart(ctx, {
                 type: 'doughnut',
@@ -1928,8 +1969,19 @@
                     maintainAspectRatio: true,
                     animation: {
                         duration: 1000
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
-                }
+                },
+                plugins: [{
+                    id: 'uniqueId',
+                    beforeInit: (chart, args, options) => {
+                        chart.id = `mcq-${labelText.toLowerCase()}`; // Set unique ID for each chart
+                    }
+                }]
             });
 
             // Update the text display if element exists
@@ -1942,9 +1994,9 @@
         }
 
         function updateMCQQuotaCharts() {
+            // Initialize charts if they haven't been initialized
             if (!chartCanvases.physics || !chartCanvases.chemistry || !chartCanvases.biology) {
-                console.warn('Chart canvases not initialized');
-                return;
+                initializeQuotaCharts();
             }
 
             const today = currentDate;
@@ -1996,6 +2048,11 @@
         }
 
         window.addEventListener('load', () => {
+            // Initialize selected categories
+            selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+
             initializeFirebase();
             initializeQuotaCharts();
             loadSyllabusData();
@@ -2128,6 +2185,17 @@
             if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
                 console.warn("Waiting for authentication...");
                 return;
+            }
+
+            // Initialize selected categories
+            if (typeof selectedPhysicsChemistrySubcategories === 'undefined') {
+                selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            }
+            if (typeof selectedChemistrySubcategories === 'undefined') {
+                selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            }
+            if (typeof selectedBiologySubcategories === 'undefined') {
+                selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
             }
 
             // Initialize empty arrays for all data types
