@@ -779,6 +779,25 @@
                 <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Daily MCQ Quota Progress</h3>
                 <div class="mcq-quota-container">
                     <div class="flex flex-col items-center">
+                        <div id="physicsMCQQuotaChart" class="mcq-quota-chart">
+                            <span id="physicsMCQQuotaValue">0/0</span>
+                        </div>
+                        <div class="mcq-quota-label">Physics MCQs</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="chemistryMCQQuotaChart" class="mcq-quota-chart">
+                            <span id="chemistryMCQQuotaValue">0/0</span>
+                        </div>
+                        <div class="mcq-quota-label">Chemistry MCQs</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="biologyMCQQuotaChart" class="mcq-quota-chart">
+                            <span id="biologyMCQQuotaValue">0/0</span>
+                        </div>
+                        <div class="mcq-quota-label">Biology MCQs</div>
+                    </div>
+                </div>
+                    <div class="flex flex-col items-center">
                         <div class="mcq-quota-chart" id="physicsMCQQuotaChart">
                             <span id="physicsMCQQuotaValue">0/100</span>
                         </div>
@@ -1317,6 +1336,20 @@
         // Global variables to store fetched data
         let utTestData = [];
         let bbctsData = [];
+        
+        // Chart variables
+        let mcqChartInstances = {
+            physics: null,
+            chemistry: null,
+            biology: null
+        };
+        
+        // Chart canvas elements
+        let chartCanvases = {
+            physics: null,
+            chemistry: null,
+            biology: null
+        };
         let quarterlyData = [];
         let missionNeetData = [];
         let regularDataLogs = []; // Array to store multiple daily logs
@@ -1850,6 +1883,124 @@
         /**
          * Initializes Firebase and sets up authentication listener.
          */
+        function initializeQuotaCharts() {
+            ['physics', 'chemistry', 'biology'].forEach(subject => {
+                const container = document.getElementById(`${subject}MCQQuotaChart`);
+                if (container && !container.querySelector('canvas')) {
+                    const canvas = document.createElement('canvas');
+                    container.appendChild(canvas);
+                    chartCanvases[subject] = canvas;
+                }
+            });
+        }
+
+        function drawCircularProgressChart(canvasElement, current, target, labelText, color, instanceVar) {
+            if (!canvasElement) return null;
+            
+            const ctx = canvasElement.getContext('2d');
+            if (!ctx) return null;
+            
+            // Destroy previous instance if it exists
+            if (instanceVar) {
+                instanceVar.destroy();
+            }
+
+            const percentage = target > 0 ? (current / target) * 100 : 0;
+            const dataValue = Math.min(percentage, 100);
+
+            const newChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [dataValue, 100 - dataValue],
+                        backgroundColor: [color, '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '80%',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+
+            // Update the text display if element exists
+            const textElement = canvasElement.nextElementSibling;
+            if (textElement) {
+                textElement.textContent = `${current}/${target}`;
+            }
+
+            return newChartInstance;
+        }
+
+        function updateMCQQuotaCharts() {
+            if (!chartCanvases.physics || !chartCanvases.chemistry || !chartCanvases.biology) {
+                console.warn('Chart canvases not initialized');
+                return;
+            }
+
+            const today = currentDate;
+            const todayLogs = regularDataLogs.filter(log => log.date === today);
+
+            // Reset daily counts
+            dailyMCQCount = {
+                Physics: 0,
+                Chemistry: 0,
+                Biology: 0
+            };
+
+            // Calculate MCQ counts from today's logs
+            todayLogs.forEach(log => {
+                if (log.mcqCount && log.subject) {
+                    dailyMCQCount[log.subject] += parseInt(log.mcqCount) || 0;
+                }
+            });
+
+            // Update charts
+            mcqChartInstances.physics = drawCircularProgressChart(
+                chartCanvases.physics,
+                dailyMCQCount.Physics,
+                mcqQuotas.Physics,
+                'Physics',
+                '#3b82f6',
+                mcqChartInstances.physics
+            );
+
+            mcqChartInstances.chemistry = drawCircularProgressChart(
+                chartCanvases.chemistry,
+                dailyMCQCount.Chemistry,
+                mcqQuotas.Chemistry,
+                'Chemistry',
+                '#10b981',
+                mcqChartInstances.chemistry
+            );
+
+            mcqChartInstances.biology = drawCircularProgressChart(
+                chartCanvases.biology,
+                dailyMCQCount.Biology,
+                mcqQuotas.Biology,
+                'Biology',
+                '#f59e0b',
+                mcqChartInstances.biology
+            );
+
+            updateAIMCQEmotionMessage();
+        }
+
+        window.addEventListener('load', () => {
+            initializeFirebase();
+            initializeQuotaCharts();
+            loadSyllabusData();
+            populateLogBookDropdown();
+            populateLogChapterDropdown();
+            populateLogMCQSourceDropdown();
+            activateMainTab('regularData');
+            updateMCQQuotaCharts();
+        });
+
         async function initializeFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
