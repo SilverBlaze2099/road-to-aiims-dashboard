@@ -1878,6 +1878,10 @@
                 console.error("Error during Google sign-in:", error.code, error.message);
                 let errorMessage = "Google Sign-in failed.";
                 if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = "Sign-in cancelled. Please try again.";
+                }
+                showStatusMessage(errorMessage, 'error');
+            }
                     errorMessage = "Sign-in window closed.";
                 } else if (error.code === 'auth/cancelled-popup-request') {
                     errorMessage = "Sign-in already in progress.";
@@ -2079,6 +2083,29 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                // Setup authentication state observer
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userEmail = user.email;
+                        userIdDisplay.textContent = userEmail;
+                        loginPage.style.display = 'none';
+                        mainAppContent.style.display = 'block';
+                        setupDataListeners();
+                    } else {
+                        userId = null;
+                        userEmail = 'Not Logged In';
+                        userIdDisplay.textContent = userEmail;
+                        loginPage.style.display = 'flex';
+                        mainAppContent.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showStatusMessage("Failed to initialize Firebase: " + error.message, 'error');
+                throw error; // Re-throw to handle at a higher level if needed
+            }
+
                 // Set up auth state listener
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
@@ -2097,12 +2124,10 @@
                     }
                 });
             } catch (error) {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Listen for auth state changes to manage user ID and UI visibility
-                onAuthStateChanged(auth, (user) => {
+                console.error("Error initializing Firebase:", error);
+                showStatusMessage("Failed to initialize Firebase: " + error.message, 'error');
+                throw error;
+            }
                     if (user) {
                         // User is signed in.
                         userId = user.uid;
