@@ -1,57 +1,3 @@
-        /**
-         * NEW: Marks a chapter/topic as completed in the global `chapterStatus` and saves to Firestore.
-         * This is called automatically when a daily log is saved.
-         * @param {string} baseChapterKey - The unique key for the chapter.
-         * @param {string} fullTopicKey - The unique key for the topic.
-         * @param {string} subjectName - Name of the subject.
-         * @param {string} chapterName - Name of the chapter.
-         * @param {string|null} topicName - Name of the topic, or null for biology chapters.
-         * @param {string} bookKey - The key for the book/module being updated.
-         */
-        async function markChapterTopicAsCompleted(baseChapterKey, fullTopicKey, subjectName, chapterName, topicName, bookKey) {
-            if (!chapterStatus[baseChapterKey]) chapterStatus[baseChapterKey] = {};
-            if (!chapterStatus[baseChapterKey][bookKey]) chapterStatus[baseChapterKey][bookKey] = {};
-            if (!chapterStatus[baseChapterKey][bookKey][fullTopicKey]) {
-                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = { isCompleted: false, completionDate: null, aiMessage: '' };
-            }
-
-            if (chapterStatus[baseChapterKey][bookKey][fullTopicKey].isCompleted) {
-                console.log(`Topic/Chapter ${fullTopicKey} for ${bookKey} already marked as completed.`);
-                return; // Already completed, no need to do anything
-            }
-
-            const allSubCategories = (subjectName === 'Physics' || subjectName === 'Chemistry') ? physicsChemistrySubCategoriesOrdered : biologySubCategoriesOrdered;
-            const subCategoryLevel = allSubCategories.find(c => c.key === bookKey)?.level || 0;
-
-            try {
-                // For automatic updates, we can skip the AI message generation to speed things up.
-                // A simple checkmark is sufficient.
-                const aiMessage = '✔ (Auto)';
-
-                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = {
-                    isCompleted: true,
-                    completionDate: new Date().toISOString().split('T')[0],
-                    aiMessage: aiMessage
-                };
-                showStatusMessage(`'${topicName || chapterName}' progress updated!`, 'success');
-            } catch (error) {
-                console.error("Error during automatic goal update:", error);
-                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = {
-                    isCompleted: true,
-                    completionDate: new Date().toISOString().split('T')[0],
-                    aiMessage: '✔'
-                };
-                showStatusMessage("Syllabus progress updated (with fallback).", 'error');
-            } finally {
-                await saveChapterStatus(); // Save the updated status to Firestore
-                // Re-render the currently active goals tab to show the change immediately
-                const activeGoalsTab = document.querySelector('#contentGoals .sub-tab-button.active');
-                if (activeGoalsTab) {
-                    renderGoalsChapters(activeGoalsTab.id.replace('goalsSubTab', '').toLowerCase());
-                }
-            }
-        }
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1325,9 +1271,11 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
+        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
         // Global variables for Firebase instances and user ID
         let app;
@@ -1366,6 +1314,60 @@
         let physicsGoalsData = [];
         let chemistryGoalsData = [];
         let biologyGoalsData = [];
+
+        /**
+         * NEW: Marks a chapter/topic as completed in the global `chapterStatus` and saves to Firestore.
+         * This is called automatically when a daily log is saved.
+         * @param {string} baseChapterKey - The unique key for the chapter.
+         * @param {string} fullTopicKey - The unique key for the topic.
+         * @param {string} subjectName - Name of the subject.
+         * @param {string} chapterName - Name of the chapter.
+         * @param {string|null} topicName - Name of the topic, or null for biology chapters.
+         * @param {string} bookKey - The key for the book/module being updated.
+         */
+        async function markChapterTopicAsCompleted(baseChapterKey, fullTopicKey, subjectName, chapterName, topicName, bookKey) {
+            if (!chapterStatus[baseChapterKey]) chapterStatus[baseChapterKey] = {};
+            if (!chapterStatus[baseChapterKey][bookKey]) chapterStatus[baseChapterKey][bookKey] = {};
+            if (!chapterStatus[baseChapterKey][bookKey][fullTopicKey]) {
+                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = { isCompleted: false, completionDate: null, aiMessage: '' };
+            }
+
+            if (chapterStatus[baseChapterKey][bookKey][fullTopicKey].isCompleted) {
+                console.log(`Topic/Chapter ${fullTopicKey} for ${bookKey} already marked as completed.`);
+                return; // Already completed, no need to do anything
+            }
+
+            const allSubCategories = (subjectName === 'Physics' || subjectName === 'Chemistry') ? physicsChemistrySubCategoriesOrdered : biologySubCategoriesOrdered;
+            const subCategoryLevel = allSubCategories.find(c => c.key === bookKey)?.level || 0;
+
+            try {
+                // For automatic updates, we can skip the AI message generation to speed things up.
+                // A simple checkmark is sufficient.
+                const aiMessage = '✔ (Auto)';
+
+                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = {
+                    isCompleted: true,
+                    completionDate: new Date().toISOString().split('T')[0],
+                    aiMessage: aiMessage
+                };
+                showStatusMessage(`'${topicName || chapterName}' progress updated!`, 'success');
+            } catch (error) {
+                console.error("Error during automatic goal update:", error);
+                chapterStatus[baseChapterKey][bookKey][fullTopicKey] = {
+                    isCompleted: true,
+                    completionDate: new Date().toISOString().split('T')[0],
+                    aiMessage: '✔'
+                };
+                showStatusMessage("Syllabus progress updated (with fallback).", 'error');
+            } finally {
+                await saveChapterStatus(); // Save the updated status to Firestore
+                // Re-render the currently active goals tab to show the change immediately
+                const activeGoalsTab = document.querySelector('#contentGoals .sub-tab-button.active');
+                if (activeGoalsTab) {
+                    renderGoalsChapters(activeGoalsTab.id.replace('goalsSubTab', '').toLowerCase());
+                }
+            }
+        }
 
         // Tuition Schedule
         const tuitionSchedule = {
@@ -1785,7 +1787,53 @@
         const savePlanButton = document.getElementById('savePlanButton');
 
 
-        // --- Utility Functions ---
+        // --- Debug and Utility Functions ---
+
+        /**
+         * Debug logging utility with categories
+         * @param {string} category - The category of the log
+         * @param {string} message - The message to log
+         * @param {any} data - Optional data to log
+         */
+        function debugLog(category, message, data = null) {
+            const timestamp = new Date().toISOString().split('T')[1];
+            console.debug(`[${timestamp}][${category}] ${message}`, data || '');
+        }
+
+        /**
+         * Performance tracking utility
+         * @param {string} category - The category of the operation
+         * @param {string} operation - The operation being performed
+         */
+        function trackPerformance(category, operation) {
+            const start = performance.now();
+            return {
+                end: () => {
+                    const duration = (performance.now() - start).toFixed(2);
+                    debugLog(category, `${operation} completed in ${duration}ms`);
+                }
+            };
+        }
+
+        /**
+         * Error handling wrapper for async operations
+         * @param {string} category - The category of the operation
+         * @param {string} operation - The operation description
+         * @param {Function} action - The async function to execute
+         */
+        async function withErrorHandling(category, operation, action) {
+            const tracker = trackPerformance(category, operation);
+            try {
+                debugLog(category, `Starting ${operation}`);
+                const result = await action();
+                tracker.end();
+                return result;
+            } catch (error) {
+                console.error(`[${category}] Error in ${operation}:`, error);
+                showStatusMessage(`${operation} failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
 
         /**
          * Displays a temporary status message to the user.
@@ -1878,10 +1926,6 @@
                 console.error("Error during Google sign-in:", error.code, error.message);
                 let errorMessage = "Google Sign-in failed.";
                 if (error.code === 'auth/popup-closed-by-user') {
-                    errorMessage = "Sign-in cancelled. Please try again.";
-                }
-                showStatusMessage(errorMessage, 'error');
-            }
                     errorMessage = "Sign-in window closed.";
                 } else if (error.code === 'auth/cancelled-popup-request') {
                     errorMessage = "Sign-in already in progress.";
@@ -1924,9 +1968,29 @@
         }
 
         function destroyChart(chartInstance) {
-            if (chartInstance && typeof chartInstance.destroy === 'function') {
-                chartInstance.destroy();
+            try {
+                if (chartInstance?.destroy) {
+                    debugLog('Charts', 'Destroying chart instance');
+                    chartInstance.destroy();
+                }
+            } catch (error) {
+                console.warn('Error destroying chart:', error);
             }
+        }
+
+        /**
+         * Safely creates or updates a chart instance
+         * @param {string} chartId - The ID of the chart
+         * @param {Function} createFn - Function to create the chart
+         */
+        async function safeChartOperation(chartId, createFn) {
+            return withErrorHandling('Charts', `operation on ${chartId}`, async () => {
+                const container = document.getElementById(chartId);
+                if (!container) {
+                    throw new Error(`Chart container ${chartId} not found`);
+                }
+                return await createFn(container);
+            });
         }
 
         function drawCircularProgressChart(canvasElement, current, target, labelText, color, chartInstance) {
@@ -2020,187 +2084,258 @@
                 }
             });
 
-            // Update charts
-            mcqChartInstances.physics = drawCircularProgressChart(
-                chartCanvases.physics,
-                dailyMCQCount.Physics,
-                mcqQuotas.Physics,
-                'Physics',
-                '#3b82f6',
-                mcqChartInstances.physics
-            );
+            // Update charts if containers exist
+            const physicsChart = document.getElementById('physicsMCQQuotaChart');
+            const chemistryChart = document.getElementById('chemistryMCQQuotaChart');
+            const biologyChart = document.getElementById('biologyMCQQuotaChart');
 
-            mcqChartInstances.chemistry = drawCircularProgressChart(
-                chartCanvases.chemistry,
-                dailyMCQCount.Chemistry,
-                mcqQuotas.Chemistry,
-                'Chemistry',
-                '#10b981',
-                mcqChartInstances.chemistry
-            );
+            if (physicsChart) {
+                mcqChartInstances.physics = drawCircularProgressChart(
+                    physicsChart,
+                    dailyMCQCount.Physics,
+                    mcqQuotas.Physics,
+                    'physicsMCQQuotaValue',
+                    '#3b82f6',
+                    mcqChartInstances.physics
+                );
+            }
 
-            mcqChartInstances.biology = drawCircularProgressChart(
-                chartCanvases.biology,
-                dailyMCQCount.Biology,
-                mcqQuotas.Biology,
-                'Biology',
-                '#f59e0b',
-                mcqChartInstances.biology
-            );
+            if (chemistryChart) {
+                mcqChartInstances.chemistry = drawCircularProgressChart(
+                    chemistryChart,
+                    dailyMCQCount.Chemistry,
+                    mcqQuotas.Chemistry,
+                    'chemistryMCQQuotaValue',
+                    '#10b981',
+                    mcqChartInstances.chemistry
+                );
+            }
+
+            if (biologyChart) {
+                mcqChartInstances.biology = drawCircularProgressChart(
+                    biologyChart,
+                    dailyMCQCount.Biology,
+                    mcqQuotas.Biology,
+                    'biologyMCQQuotaValue',
+                    '#f59e0b',
+                    mcqChartInstances.biology
+                );
+            }
 
             updateAIMCQEmotionMessage();
         }
 
-        window.addEventListener('load', () => {
-            // Initialize selected categories
-            selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+        window.addEventListener('load', async () => {
+            debugLog('App', 'Starting application initialization');
+            const mainTracker = trackPerformance('App', 'initialization');
 
-            initializeFirebase();
-            initializeQuotaCharts();
-            loadSyllabusData();
-            populateLogBookDropdown();
-            populateLogChapterDropdown();
-            populateLogMCQSourceDropdown();
-            activateMainTab('regularData');
-            updateMCQQuotaCharts();
+            try {
+                // Initialize categories with error handling
+                await withErrorHandling('Data', 'category initialization', async () => {
+                    selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+                    selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+                    selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+                    debugLog('Data', 'Categories initialized successfully');
+                });
+
+                // Initialize Firebase first
+                await initializeFirebase().catch(error => {
+                    console.error("Firebase initialization failed:", error);
+                    throw error;
+                });
+
+                // Initialize UI components with parallel loading and error handling
+                await withErrorHandling('UI', 'component initialization', async () => {
+                    debugLog('UI', 'Starting parallel UI component initialization');
+                    
+                    await Promise.all([
+                        withErrorHandling('Charts', 'quota charts', initializeQuotaCharts),
+                        withErrorHandling('Data', 'syllabus', loadSyllabusData),
+                        withErrorHandling('UI', 'dropdowns', async () => {
+                            await Promise.all([
+                                populateLogBookDropdown().catch(e => debugLog('UI', 'Book dropdown failed:', e)),
+                                populateLogChapterDropdown().catch(e => debugLog('UI', 'Chapter dropdown failed:', e)),
+                                populateLogMCQSourceDropdown().catch(e => debugLog('UI', 'MCQ source dropdown failed:', e))
+                            ]);
+                        })
+                    ]);
+
+                    activateMainTab('regularData');
+                    await updateMCQQuotaCharts();
+                    debugLog('UI', 'All UI components initialized successfully');
+                });
+
+                // Add event listeners for auth buttons
+                if (googleSignInButton) {
+                    googleSignInButton.addEventListener('click', handleGoogleSignIn);
+                }
+                if (signOutButton) {
+                    signOutButton.addEventListener('click', handleSignOut);
+                }
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                showStatusMessage('Failed to initialize application. Please refresh the page.', 'error');
+            }
         });
 
         async function initializeFirebase() {
             try {
-                // Initialize Firebase with your config
-                const firebaseConfig = {
-                    apiKey: "AIzaSyA29MM64OLCgKRfnl8tr-I39IIoBE-RLFM",
-                    authDomain: "my-neet-tracker-app.firebaseapp.com",
-                    projectId: "my-neet-tracker-app",
-                    storageBucket: "my-neet-tracker-app.appspot.com",
-                    messagingSenderId: "931350823768",
-                    appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d"
-                };
+                // Initialize Firebase only if not already initialized
+                if (!app) {
+                    // Using the globally defined firebaseConfig
+                    console.log("Initializing Firebase with config:", firebaseConfig);
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                }
 
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+                // Setup authentication state observer and return a promise
+                return new Promise((resolve, reject) => {
+                    const unsubscribe = onAuthStateChanged(auth, (user) => {
+                        try {
+                            if (user) {
+                                userId = user.uid;
+                                userEmail = user.email;
 
-                // Setup authentication state observer
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userEmail = user.email;
-                        userIdDisplay.textContent = userEmail;
-                        loginPage.style.display = 'none';
-                        mainAppContent.style.display = 'block';
-                        setupDataListeners();
-                    } else {
-                        userId = null;
-                        userEmail = 'Not Logged In';
-                        userIdDisplay.textContent = userEmail;
-                        loginPage.style.display = 'flex';
-                        mainAppContent.style.display = 'none';
-                    }
-                });
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                showStatusMessage("Failed to initialize Firebase: " + error.message, 'error');
-                throw error; // Re-throw to handle at a higher level if needed
-            }
+                                // Update UI elements
+                                if (userIdDisplay) userIdDisplay.textContent = userEmail;
+                                if (loginPage) loginPage.classList.add('hidden');
+                                if (mainAppContent) mainAppContent.classList.remove('hidden');
 
-                // Set up auth state listener
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userEmail = user.email;
-                        userIdDisplay.textContent = userEmail;
-                        loginPage.classList.add('hidden');
-                        mainAppContent.classList.remove('hidden');
-                        setupDataListeners();
-                    } else {
-                        userId = 'not-authenticated';
-                        userEmail = 'Not Logged In';
-                        userIdDisplay.textContent = userEmail;
-                        loginPage.classList.remove('hidden');
-                        mainAppContent.classList.add('hidden');
-                    }
+                                console.log("User authenticated:", userId, userEmail);
+                                
+                                // Initialize application state
+                                Promise.all([
+                                    setupDataListeners(),
+                                    displayRandomQuoteAndSave(),
+                                    renderCalendar()
+                                ]).then(() => {
+                                    unsubscribe();
+                                    resolve(true);
+                                }).catch(error => {
+                                    console.error("Error in initialization:", error);
+                                    reject(error);
+                                });
+                            } else {
+                                // Reset state for logged out user
+                                userId = 'not-authenticated';
+                                userEmail = 'Not Logged In';
+
+                                // Update UI for logged out state
+                                if (userIdDisplay) userIdDisplay.textContent = userEmail;
+                                if (loginPage) loginPage.classList.remove('hidden');
+                                if (mainAppContent) mainAppContent.classList.add('hidden');
+
+                                // Clear data and update display
+                                resetDisplaysAndCharts();
+                                displayRandomLoginQuote();
+                                renderCalendar();
+                                
+                                unsubscribe();
+                                resolve(false);
+                            }
+                        } catch (error) {
+                            console.error("Error in auth state change handler:", error);
+                            reject(error);
+                        }
+                    }, (error) => {
+                        console.error("Auth state change error:", error);
+                        reject(error);
+                    });
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
                 showStatusMessage("Failed to initialize Firebase: " + error.message, 'error');
                 throw error;
             }
-                    if (user) {
-                        // User is signed in.
-                        userId = user.uid;
-                        userEmail = user.email || 'N/A'; // Get email or set N/A
-                        if (userIdDisplay) userIdDisplay.textContent = userEmail;
+        }
 
-                        // Hide login page, show main app content
-                        if (loginPage) loginPage.classList.add('hidden');
-                        if (mainAppContent) mainAppContent.classList.remove('hidden');
+        /**
+         * Resets all displays and charts when user logs out
+         */
+        /**
+         * Resets all displays and charts with error handling
+         */
+        async function resetDisplaysAndCharts() {
+            debugLog('UI', 'Starting display and chart reset');
+            const tracker = trackPerformance('UI', 'reset');
 
-                        console.log("User authenticated:", userId, userEmail);
-                        setupDataListeners(); // Setup listeners only when a user is confirmed
-                        displayRandomQuoteAndSave(); // Update main app quote
-                        renderCalendar(); // Initial calendar render
-                    } else {
-                        // User is signed out.
-                        userId = 'not-authenticated';
-                        userEmail = 'Not Logged In';
-                        if (userIdDisplay) userIdDisplay.textContent = userEmail;
+            try {
+                // Reset all display elements with error handling
+                const displays = {
+                dailyLogDisplay: "Please log in to view your data.",
+                upcomingPlansDisplay: "Please log in to view your data.",
+                backlogsDisplay: "Please log in to view your data.",
+                completedTasksDisplay: "Please log in to view your data.",
+                testsDataDisplay: "Please log in to view your data.",
+                bbctsDataDisplay: "Please log in to view your data.",
+                quarterlyDataDisplay: "Please log in to view your data.",
+                missionNeetDataDisplay: "Please log in to view your data.",
+                aiProductivityAnalysisDisplay: "Please log in to view AI analysis.",
+                aiPerformanceAnalysisDisplay: "Please log in to view AI analysis.",
+                aiGoalsAnalysisDisplay: "Please log in to view AI analysis.",
+                aiResponseDisplay: "Please log in to get AI suggestions.",
+                nextStudyPlanDisplay: "Please log in to get your next study plan.",
+                conceptExplanationDisplay: "Please log in to get concept explanations.",
+                revisionSuggestionsDisplay: "Please log in to get revision suggestions.",
+                generatedQuestionsDisplay: "Please log in to generate questions.",
+                weaknessAnalysisDisplay: "Please log in to get weakness analysis."
+            };
 
-                        // Show login page, hide main app content
-                        if (loginPage) loginPage.classList.remove('hidden');
-                        if (mainAppContent) mainAppContent.classList.add('hidden');
+            // Reset all display elements
+            Object.entries(displays).forEach(([elementId, message]) => {
+                const element = document.getElementById(elementId);
+                if (element) element.textContent = message;
+            });
 
-                        console.log("No user signed in.");
-                        // Clear data displays and charts if user logs out
-                        if (dailyLogDisplay) dailyLogDisplay.textContent = "Please log in to view your data.";
-                        if (upcomingPlansDisplay) upcomingPlansDisplay.textContent = "Please log in to view your data.";
-                        if (backlogsDisplay) backlogsDisplay.textContent = "Please log in to view your data.";
-                        if (completedTasksDisplay) completedTasksDisplay.textContent = "Please log in to view your data.";
-                        if (testsDataDisplay) testsDataDisplay.textContent = "Please log in to view your data.";
-                        if (bbctsDataDisplay) bbctsDataDisplay.textContent = "Please log in to view your data.";
-                        if (quarterlyDataDisplay) quarterlyDataDisplay.textContent = "Please log in to view your data.";
-                        if (missionNeetDataDisplay) missionNeetDataDisplay.textContent = "Please log in to view your data.";
-                        if (aiProductivityAnalysisDisplay) aiProductivityAnalysisDisplay.textContent = "Please log in to view AI analysis.";
-                        if (aiPerformanceAnalysisDisplay) aiPerformanceAnalysisDisplay.textContent = "Please log in to view AI analysis.";
-                        if (aiGoalsAnalysisDisplay) aiGoalsAnalysisDisplay.textContent = "Please log in to view AI analysis.";
-                        if (aiResponseDisplay) aiResponseDisplay.textContent = "Please log in to get AI suggestions.";
-                        if (nextStudyPlanDisplay) nextStudyPlanDisplay.textContent = "Please log in to get your next study plan.";
-                        if (conceptExplanationDisplay) conceptExplanationDisplay.textContent = "Please log in to get concept explanations.";
-                        if (revisionSuggestionsDisplay) revisionSuggestionsDisplay.textContent = "Please log in to get revision suggestions.";
-                        if (generatedQuestionsDisplay) generatedQuestionsDisplay.textContent = "Please log in to generate questions.";
-                        if (weaknessAnalysisDisplay) weaknessAnalysisDisplay.textContent = "Please log in to get weakness analysis.";
+            // Reset all charts
+            const charts = [
+                physicsChartUTInstance,
+                chemistryChartUTInstance,
+                biologyChartUTInstance,
+                physicsChartBBCTSInstance,
+                chemistryChartBBCTSInstance,
+                biologyChartBBCTSInstance,
+                physicsChartQuarterlyInstance,
+                chemistryChartQuarterlyInstance,
+                biologyChartQuarterlyInstance,
+                missionNeetChartInstance,
+                syllabusProgressionChartInstance,
+                physicsMCQChartInstance,
+                chemistryMCQChartInstance,
+                biologyMCQChartInstance
+            ];
 
-                        destroyChart(physicsChartUTInstance);
-                        destroyChart(chemistryChartUTInstance);
-                        destroyChart(biologyChartUTInstance);
-                        destroyChart(physicsChartBBCTSInstance);
-                        destroyChart(chemistryChartBBCTSInstance);
-                        destroyChart(biologyChartBBCTSInstance);
-                        destroyChart(physicsChartQuarterlyInstance);
-                        destroyChart(chemistryChartQuarterlyInstance);
-                        destroyChart(biologyChartQuarterlyInstance);
-                        destroyChart(missionNeetChartInstance);
-                        destroyChart(syllabusProgressionChartInstance);
-                        destroyChart(physicsMCQChartInstance); // NEW
-                        destroyChart(chemistryMCQChartInstance); // NEW
-                        destroyChart(biologyMCQChartInstance); // NEW
+            charts.forEach(destroyChart);
+            
+            tracker.end();
+            debugLog('UI', 'Display and chart reset completed');
+        } catch (error) {
+            console.error('Error during display/chart reset:', error);
+            debugLog('UI', 'Error during reset:', error);
+        }
+    }
 
-                        // Set a random quote for the login page
-                        displayRandomLoginQuote();
-                        renderCalendar(); // Render calendar without user data
-                    }
-                });
+    /**
+     * Gets the color for a specific subject
+     */
+    function getSubjectColor(subject) {
+            const colors = {
+                physics: '#4CAF50',  // Green
+                chemistry: '#2196F3', // Blue
+                biology: '#FFC107'    // Amber
+            };
+            return colors[subject] || '#9E9E9E'; // Grey as default
+        }
 
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                showStatusMessage("Error loading app. Please check console for details.", 'error');
-                if (userIdDisplay) userIdDisplay.textContent = "Error";
-                // Still show login page even if Firebase init fails, but with error message
-                if (loginPage) loginPage.classList.remove('hidden');
-                if (mainAppContent) mainAppContent.classList.add('hidden');
-            }
+        /**
+         * Updates all displays with current data
+         */
+        function updateDisplays() {
+            updateMCQQuotaCharts();
+            renderCalendar();
+            displayDataInTables();
+            updateProgressCharts();
         }
 
         /**
@@ -2209,37 +2344,37 @@
         function setupDataListeners() {
             if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
                 console.warn("Waiting for authentication...");
-                return;
+                return Promise.resolve();
             }
 
-            // Initialize selected categories
-            if (typeof selectedPhysicsChemistrySubcategories === 'undefined') {
-                selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            }
-            if (typeof selectedChemistrySubcategories === 'undefined') {
-                selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            }
-            if (typeof selectedBiologySubcategories === 'undefined') {
-                selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+            // Reset all data arrays
+            function resetData() {
+                regularDataLogs = [];
+                upcomingPlans = [];
+                completedTasks = [];
+                utTestData = [];
+                bbctsData = [];
+                quarterlyData = [];
+                missionNeetData = [];
+                chapterStatus = {};
             }
 
-            // Initialize empty arrays for all data types
-            regularDataLogs = [];
-            upcomingPlans = [];
-            completedTasks = [];
-            utTestData = [];
-            bbctsData = [];
-            quarterlyData = [];
-            missionNeetData = [];
-            chapterStatus = {};
-
-            // Initialize selected categories
-            selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
-            selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
-                console.warn("Firestore not initialized or user not authenticated. Cannot set up data listeners.");
-                return;
+            // Initialize categories
+            function initializeCategories() {
+                if (!selectedPhysicsChemistrySubcategories?.length) {
+                    selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+                }
+                if (!selectedChemistrySubcategories?.length) {
+                    selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+                }
+                if (!selectedBiologySubcategories?.length) {
+                    selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
+                }
             }
+
+            // Reset all data and initialize categories
+            resetData();
+            initializeCategories();
 
             // Listener for Regular Daily Logs
             const regularDocRef = doc(db, `artifacts/${appId}/users/${userId}/dailyRoutine`, 'dailyLogs');
@@ -2890,74 +3025,6 @@
             }
         }
 
-        /**
-         * Marks a chapter/topic as completed in the global `chapterStatus` and saves to Firestore.
-         * @param {string} chapterKey - The unique key for the chapter.
-         * @param {string} topicKey - The unique key for the topic (can be same as chapterKey for Biology chapters).
-         * @param {string} subjectName - Name of the subject.
-         * @param {string} chapterName - Name of the chapter.
-         * @param {string|null} topicName - Name of the topic, or null for biology chapters.
-         */
-        async function markChapterTopicAsCompleted(chapterKey, topicKey, subjectName, chapterName, topicName) {
-            if (!chapterStatus[chapterKey]) chapterStatus[chapterKey] = {};
-            if (!chapterStatus[chapterKey][topicKey]) {
-                chapterStatus[chapterKey][topicKey] = { isCompleted: false, completionDate: null, aiMessage: '' };
-            }
-
-            if (chapterStatus[chapterKey][topicKey].isCompleted) {
-                console.log(`Topic/Chapter ${topicKey} already marked as completed.`);
-                return; // Already completed, no need to do anything
-            }
-
-            const currentSubCategoryLevel = (subjectName === 'Physics' || subjectName === 'Chemistry')
-                                            ? physicsChemistrySubCategoriesOrdered.find(c => c.key === logBookSelect.value)?.level || 0
-                                            : biologySubCategoriesOrdered.find(c => c.key === logBookSelect.value)?.level || 0;
-
-            try {
-                let prompt;
-                if (topicName) {
-                    prompt = `Generate a very short, encouraging 'done' message (max 10 words) with a celebratory emoji for completing the "${topicName}" topic within the chapter "${chapterName}" for "${subjectName}". Example: "Awesome work! ${topicName} mastered! 🎉"`;
-                } else { // For Biology chapters (no topics)
-                    prompt = `Generate a very short, encouraging 'done' message (max 10 words) with a celebratory emoji for completing the chapter "${chapterName}" for "${subjectName}". Example: "Fantastic! ${chapterName} done! 🚀"`;
-                }
-
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                const apiKey = firebaseConfig.apiKey; // Use your Firebase API key for Gemini
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                let aiMessage = '✔';
-                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
-                    aiMessage = result.candidates[0].content.parts[0].text;
-                }
-
-                chapterStatus[chapterKey][topicKey] = {
-                    isCompleted: true,
-                    completionDate: new Date().toISOString().split('T')[0],
-                    aiMessage: aiMessage
-                };
-                showStatusMessage("Syllabus progress updated!", 'success');
-            } catch (error) {
-                console.error("Error generating AI message for chapter completion:", error);
-                chapterStatus[chapterKey][topicKey] = {
-                    isCompleted: true,
-                    completionDate: new Date().toISOString().split('T')[0],
-                    aiMessage: '✔'
-                };
-                showStatusMessage("Syllabus progress updated (AI message failed).", 'error');
-            } finally {
-                saveChapterStatus(); // Save the updated status to Firestore
-                renderGoalsChapters(subjectName.toLowerCase()); // Re-render the goals section
-            }
-        }
-
 
         // --- Tab Switching Logic ---
 
@@ -3436,18 +3503,6 @@
         if (goalsSubTabButtons.biology) goalsSubTabButtons.biology.addEventListener('click', () => activateGoalsSubTab('biology'));
 
         // --- Analytics (Chart.js Graphs) ---
-
-        /**
-         * Destroys an existing chart instance if it exists.
-         * @param {Chart} chartInstance - The Chart.js instance to destroy.
-         * @returns {null} - Returns null after destruction.
-         */
-        function destroyChart(chartInstance) {
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            return null;
-        }
 
         /**
          * Draws a line chart for a given subject/data type using raw marks or percentages.
@@ -4798,83 +4853,6 @@
             `;
         }
 
-        // NEW: Draw a circular progress chart (for MCQ Quota)
-        function drawCircularProgressChart(canvasElement, current, target, labelText, color, instanceVar) {
-            const ctx = canvasElement.getContext('2d');
-            destroyChart(instanceVar); // Destroy previous instance
-
-            const percentage = target > 0 ? (current / target) * 100 : 0;
-            const dataValue = Math.min(percentage, 100); // Cap at 100%
-
-            const newChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [dataValue, 100 - dataValue],
-                        backgroundColor: [color, '#e5e7eb'], // Filled color, background color
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%', // Adjust thickness of the circle
-                    plugins: {
-                        tooltip: {
-                            enabled: false
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    events: [] // Disable all events
-                }
-            });
-
-            // Update the text display
-            canvasElement.nextElementSibling.textContent = labelText; // Label text is already correct here
-
-            return newChartInstance;
-        }
-
-
-        // NEW: Update MCQ Quota Charts and display total for today
-        async function updateMCQQuotaCharts() {
-            const today = currentDate;
-            const logsForToday = regularDataLogs.filter(log => log.date === today && log.studyTypes.includes('MCQs'));
-
-            dailyMCQCount = { Physics: 0, Chemistry: 0, Biology: 0 };
-            logsForToday.forEach(log => {
-                if (log.subject && log.mcqCount) {
-                    dailyMCQCount[log.subject] = (dailyMCQCount[log.subject] || 0) + log.mcqCount;
-                }
-            });
-
-            physicsMCQQuotaValue.textContent = `${dailyMCQCount.Physics}/${mcqQuotas.Physics}`;
-            chemistryMCQQuotaValue.textContent = `${dailyMCQCount.Chemistry}/${mcqQuotas.Chemistry}`;
-            biologyMCQQuotaValue.textContent = `${dailyMCQCount.Biology}/${mcqQuotas.Biology}`;
-
-            // Draw/update charts
-            physicsMCQChartInstance = drawCircularProgressChart(physicsMCQQuotaChart.querySelector('canvas') || document.createElement('canvas'), dailyMCQCount.Physics, mcqQuotas.Physics, 'Physics', '#3b82f6', physicsMCQChartInstance);
-            chemistryMCQChartInstance = drawCircularProgressChart(chemistryMCQQuotaChart.querySelector('canvas') || document.createElement('canvas'), dailyMCQCount.Chemistry, mcqQuotas.Chemistry, 'Chemistry', '#f97316', chemistryMCQChartInstance);
-            biologyMCQChartInstance = drawCircularProgressChart(biologyMCQQuotaChart.querySelector('canvas') || document.createElement('canvas'), dailyMCQCount.Biology, mcqQuotas.Biology, 'Biology', '#10b981', biologyMCQChartInstance);
-
-            // Check for quota completion and trigger AI praise
-            clearTimeout(aiMCQEmotionMessageTimeout); // Clear previous timeout
-            aiMCQEmotionMessage.classList.add('hidden'); // Hide previous message
-
-            const subjectsMetQuota = [];
-            if (dailyMCQCount.Physics >= mcqQuotas.Physics) subjectsMetQuota.push('Physics');
-            if (dailyMCQCount.Chemistry >= mcqQuotas.Chemistry) subjectsMetQuota.push('Chemistry');
-            if (dailyMCQCount.Biology >= mcqQuotas.Biology) subjectsMetQuota.push('Biology');
-
-            if (subjectsMetQuota.length > 0) {
-                generateMCQQuotaPraise(subjectsMetQuota);
-            }
-
-            renderCalendar(); // Update calendar with MCQ quota status
-        }
-
         // NEW: AI praise for MCQ quota
         async function generateMCQQuotaPraise(subjects) {
             if (userId === 'not-authenticated') return;
@@ -5130,4 +5108,3 @@
     </script>
 </body>
 </html>
-```
