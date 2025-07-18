@@ -780,18 +780,21 @@
                 <div class="mcq-quota-container">
                     <div class="flex flex-col items-center">
                         <div id="physicsMCQQuotaChart" class="mcq-quota-chart">
+                            <canvas></canvas>
                             <span id="physicsMCQQuotaValue">0/0</span>
                         </div>
                         <div class="mcq-quota-label">Physics MCQs</div>
                     </div>
                     <div class="flex flex-col items-center">
                         <div id="chemistryMCQQuotaChart" class="mcq-quota-chart">
+                            <canvas></canvas>
                             <span id="chemistryMCQQuotaValue">0/0</span>
                         </div>
                         <div class="mcq-quota-label">Chemistry MCQs</div>
                     </div>
                     <div class="flex flex-col items-center">
                         <div id="biologyMCQQuotaChart" class="mcq-quota-chart">
+                            <canvas></canvas>
                             <span id="biologyMCQQuotaValue">0/0</span>
                         </div>
                         <div class="mcq-quota-label">Biology MCQs</div>
@@ -1894,16 +1897,18 @@
             });
         }
 
-        function drawCircularProgressChart(canvasElement, current, target, labelText, color, instanceVar) {
-            if (!canvasElement) return null;
+        function drawCircularProgressChart(canvasElement, current, target, labelText, color, chartInstance) {
+            if (!canvasElement) {
+                console.warn('Canvas element not found');
+                return null;
+            }
+            
+            // Destroy existing chart instance if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
             
             const ctx = canvasElement.getContext('2d');
-            if (!ctx) return null;
-            
-            // Destroy previous instance if it exists
-            if (instanceVar) {
-                instanceVar.destroy();
-            }
 
             const percentage = target > 0 ? (current / target) * 100 : 0;
             const dataValue = Math.min(percentage, 100);
@@ -2003,6 +2008,38 @@
 
         async function initializeFirebase() {
             try {
+                // Initialize Firebase with your config
+                const firebaseConfig = {
+                    apiKey: "AIzaSyA29MM64OLCgKRfnl8tr-I39IIoBE-RLFM",
+                    authDomain: "my-neet-tracker-app.firebaseapp.com",
+                    projectId: "my-neet-tracker-app",
+                    storageBucket: "my-neet-tracker-app.appspot.com",
+                    messagingSenderId: "931350823768",
+                    appId: "1:931350823768:web:b01f2325b8292d7dbd5b2d"
+                };
+
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Set up auth state listener
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userEmail = user.email;
+                        userIdDisplay.textContent = userEmail;
+                        loginPage.classList.add('hidden');
+                        mainAppContent.classList.remove('hidden');
+                        setupDataListeners();
+                    } else {
+                        userId = 'not-authenticated';
+                        userEmail = 'Not Logged In';
+                        userIdDisplay.textContent = userEmail;
+                        loginPage.classList.remove('hidden');
+                        mainAppContent.classList.add('hidden');
+                    }
+                });
+            } catch (error) {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -2089,6 +2126,24 @@
          */
         function setupDataListeners() {
             if (!db || !userId || userId === 'loading' || userId === 'not-authenticated') {
+                console.warn("Waiting for authentication...");
+                return;
+            }
+
+            // Initialize empty arrays for all data types
+            regularDataLogs = [];
+            upcomingPlans = [];
+            completedTasks = [];
+            utTestData = [];
+            bbctsData = [];
+            quarterlyData = [];
+            missionNeetData = [];
+            chapterStatus = {};
+
+            // Initialize selected categories
+            selectedPhysicsChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            selectedChemistrySubcategories = physicsChemistrySubCategoriesOrdered.map(cat => cat.key);
+            selectedBiologySubcategories = biologySubCategoriesOrdered.map(cat => cat.key);
                 console.warn("Firestore not initialized or user not authenticated. Cannot set up data listeners.");
                 return;
             }
