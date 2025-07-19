@@ -184,42 +184,21 @@
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
     <div id="authSection" class="w-full max-w-md bg-white p-8 rounded-lg shadow-xl hidden">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Welcome to Road to AIIMS</h2>
-        <div class="mb-4 text-center">
-            <button id="loginToggleBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg mr-2 hover:bg-indigo-700">Login</button>
-            <button id="signupToggleBtn" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300">Sign Up</button>
-        </div>
-
-        <form id="loginForm" class="hidden">
-            <div class="mb-4">
-                <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-                <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your email">
-            </div>
-            <div class="mb-6">
-                <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-                <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
-            </div>
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Sign In</button>
-            </div>
-        </form>
-
-        <form id="signupForm" class="hidden">
-            <div class="mb-4">
-                <label for="signupEmail" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-                <input type="email" id="signupEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your email">
-            </div>
-            <div class="mb-6">
-                <label for="signupPassword" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-                <input type="password" id="signupPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Create a password">
-            </div>
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Sign Up</button>
-            </div>
-        </form>
-        <p id="authMessage" class="mt-4 text-center text-sm"></p>
-        <p id="motivationalQuote" class="text-center text-sm text-gray-500 italic mt-4"></p>
+    <div id="loadingOverlay" class="loading-overlay hidden"> <div class="loading-spinner"></div>
+        <p class="text-lg text-gray-700">Loading your dashboard...</p>
     </div>
+
+    <div id="authContainer" class="auth-container p-8 rounded-2xl shadow-lg bg-white flex flex-col items-center justify-center">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6">Road to AIIMS</h1>
+        <p class="text-lg text-gray-700 mb-8">Your personalized study companion</p>
+        <button id="signInWithGoogleBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl flex items-center justify-center space-x-3 transition duration-300 ease-in-out transform hover:scale-105">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.000 4.750c-2.427 0-4.664 1.050-6.225 2.793l-4.102-4.102c-2.618 2.593-4.004 6.273-4.004 10.379 0 7.828 6.096 11.241 12.000 11.241 4.939 0 9.071-1.897 12.000-5.463l-4.102-4.102c-1.561 1.743-3.798 2.793-6.225 2.793-4.471 0-8.157-3.686-8.157-8.157s3.686-8.157 8.157-8.157c2.19 0 4.172.871 5.666 2.275l3.899-3.899c-2.583-2.385-6.024-3.879-9.565-3.879z"/>
+            </svg>
+            <span>Sign in with Google</span>
+        </button>
+    </div>
+</div>
 
     <div id="mainContainer" class="container hidden">
         <div class="header-section">
