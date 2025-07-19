@@ -1,0 +1,253 @@
+<div class="daily-routine-section bg-gray-50 p-6 rounded-lg shadow-inner">
+    <div class="flex space-x-2 mb-6">
+        <button id="todayTabBtn" class="tab-button active" data-tab="today">Today</button>
+        <button id="upcomingPlansTabBtn" class="tab-button" data-tab="upcoming-plans">Upcoming Plans</button>
+        <button id="backlogsTabBtn" class="tab-button" data-tab="backlogs">Backlogs</button>
+        <button id="completedTabBtn" class="tab-button" data-tab="completed">Completed</button>
+    </div>
+
+    <div class="summary-block grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-blue-100 p-4 rounded-lg shadow-sm">
+            <h4 class="font-semibold text-blue-800">Chapters Done Today</h4>
+            <p id="chaptersDoneToday" class="text-2xl font-bold text-blue-700">0</p>
+        </div>
+        <div class="bg-green-100 p-4 rounded-lg shadow-sm">
+            <h4 class="font-semibold text-green-800">Time Spent Today</h4>
+            <p id="timeSpentToday" class="text-2xl font-bold text-green-700">0h 0m</p>
+        </div>
+        <div class="bg-purple-100 p-4 rounded-lg shadow-sm">
+            <h4 class="font-semibold text-purple-800">Total MCQs Today</h4>
+            <p id="totalMCQsToday" class="text-2xl font-bold text-purple-700">0</p>
+        </div>
+        <div class="bg-red-100 p-4 rounded-lg shadow-sm">
+            <h4 class="font-semibold text-red-800">Pending Backlogs</h4>
+            <p id="pendingBacklogs" class="text-2xl font-bold text-red-700">0</p>
+        </div>
+    </div>
+
+
+    <div id="todayTabContent" class="tab-content">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Log Your Daily Study</h3>
+        <div class="daily-log-input grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label for="logDate">Date:</label>
+                <input type="date" id="logDate" class="w-full p-2 border rounded-lg" value="">
+            </div>
+            <div>
+                <label for="logSubject">Subject:</label>
+                <select id="logSubject" class="w-full p-2 border rounded-lg">
+                    <option value="">Select Subject</option>
+                    <option value="physics">Physics</option>
+                    <option value="chemistry">Chemistry</option>
+                    <option value="biology">Biology</option>
+                </select>
+            </div>
+            <div>
+                <label for="logBook">Book/Module:</label>
+                <select id="logBook" class="w-full p-2 border rounded-lg">
+                    </select>
+            </div>
+            <div>
+                <label for="logChapter">Chapter:</label>
+                <select id="logChapter" class="w-full p-2 border rounded-lg">
+                    </select>
+            </div>
+            <div id="logTopicsContainer" class="col-span-1 md:col-span-2 hidden">
+                <label>Topics Covered:</label>
+                <div id="logTopicsChecklist" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    </div>
+            </div>
+            <div class="col-span-1 md:col-span-2">
+                <label>Type of Study:</label>
+                <div class="flex flex-wrap gap-3">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="studyType" value="Theory" class="form-checkbox text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Theory</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="studyType" value="MCQs" class="form-checkbox text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">MCQs</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="studyType" value="Revision" class="form-checkbox text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Revision</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="studyType" value="Notes" class="form-checkbox text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Notes</span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label for="logMCQsPracticed">MCQs Practiced (from Book):</label>
+                <input type="number" id="logMCQsPracticed" class="w-full p-2 border rounded-lg" min="0">
+            </div>
+            <div>
+                <label for="logMCQSourceSelect">MCQ Source (from Book):</label>
+                <select id="logMCQSourceSelect" class="w-full p-2 border rounded-lg">
+                    <option value="">Select Source</option>
+                    </select>
+            </div>
+            <div>
+                <label for="logCustomMCQSource">Custom MCQ Source:</label>
+                <input type="text" id="logCustomMCQSource" class="w-full p-2 border rounded-lg" placeholder="e.g., Online Test, Coaching Sheet">
+            </div>
+            <div>
+                <label for="logCustomMCQsCount">Custom MCQs Count:</label>
+                <input type="number" id="logCustomMCQsCount" class="w-full p-2 border rounded-lg" min="0">
+            </div>
+            <div>
+                <label for="logTimeSpent">Time Spent (HH:MM):</label>
+                <input type="time" id="logTimeSpent" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="col-span-1 md:col-span-2">
+                <label for="logComments">Comments/Notes (Optional):</label>
+                <textarea id="logComments" rows="2" class="w-full p-2 border rounded-lg"></textarea>
+            </div>
+            <div class="col-span-1 md:col-span-2">
+                <button id="addLogEntryBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">Add Log Entry</button>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Daily MCQ Quota</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h4 class="font-semibold text-gray-700">Physics (100)</h4>
+                <div class="w-32 h-32 mx-auto mt-2 relative">
+                    <canvas id="physicsMCQQuotaChart"></canvas>
+                    <div id="physicsMCQMessage" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-700"></div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h4 class="font-semibold text-gray-700">Chemistry (100)</h4>
+                <div class="w-32 h-32 mx-auto mt-2 relative">
+                    <canvas id="chemistryMCQQuotaChart"></canvas>
+                    <div id="chemistryMCQMessage" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-700"></div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h4 class="font-semibold text-gray-700">Biology (150)</h4>
+                <div class="w-32 h-32 mx-auto mt-2 relative">
+                    <canvas id="biologyMCQQuotaChart"></canvas>
+                    <div id="biologyMCQMessage" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Today's Log Entries</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg" id="dailyLogTable">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Subject</th>
+                        <th class="py-3 px-6 text-left">Chapter/Topics</th>
+                        <th class="py-3 px-6 text-left">Type</th>
+                        <th class="py-3 px-6 text-left">MCQs</th>
+                        <th class="py-3 px-6 text-left">Time</th>
+                        <th class="py-3 px-6 text-left">Comments</th>
+                        <th class="py-3 px-6 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light" id="dailyLogTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="upcomingPlansTabContent" class="tab-content hidden">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Plan Ahead</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label for="planDate">Date:</label>
+                <input type="date" id="planDate" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label for="planSubject">Subject:</label>
+                <select id="planSubject" class="w-full p-2 border rounded-lg">
+                    <option value="">Select Subject</option>
+                    <option value="physics">Physics</option>
+                    <option value="chemistry">Chemistry</option>
+                    <option value="biology">Biology</option>
+                </select>
+            </div>
+            <div>
+                <label for="planChapter">Chapter:</label>
+                <input type="text" id="planChapter" class="w-full p-2 border rounded-lg" placeholder="e.g., Electrostatics">
+            </div>
+            <div>
+                <label for="planStudyType">Study Type:</label>
+                <select id="planStudyType" class="w-full p-2 border rounded-lg">
+                    <option value="">Select Type</option>
+                    <option value="Theory">Theory</option>
+                    <option value="MCQs">MCQs</option>
+                    <option value="Revision">Revision</option>
+                    <option value="Notes">Notes</option>
+                </select>
+            </div>
+            <div>
+                <label for="planEstimatedTime">Estimated Time (HH:MM):</label>
+                <input type="time" id="planEstimatedTime" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="col-span-1 md:col-span-2">
+                <button id="addPlanBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">Add Plan</button>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Your Upcoming Plans</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg" id="upcomingPlansTable">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Date</th>
+                        <th class="py-3 px-6 text-left">Subject</th>
+                        <th class="py-3 px-6 text-left">Chapter</th>
+                        <th class="py-3 px-6 text-left">Type</th>
+                        <th class="py-3 px-6 text-left">Est. Time</th>
+                        <th class="py-3 px-6 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light" id="upcomingPlansTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="backlogsTabContent" class="tab-content hidden">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Your Study Backlogs</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg" id="backlogsTable">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Original Date</th>
+                        <th class="py-3 px-6 text-left">Subject</th>
+                        <th class="py-3 px-6 text-left">Chapter</th>
+                        <th class="py-3 px-6 text-left">Reason</th>
+                        <th class="py-3 px-6 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light" id="backlogsTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="completedTabContent" class="tab-content hidden">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Completed Tasks</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg" id="completedTable">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Date</th>
+                        <th class="py-3 px-6 text-left">Subject</th>
+                        <th class="py-3 px-6 text-left">Chapter/Topics</th>
+                        <th class="py-3 px-6 text-left">Type</th>
+                        <th class="py-3 px-6 text-left">MCQs</th>
+                        <th class="py-3 px-6 text-left">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm font-light" id="completedTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>

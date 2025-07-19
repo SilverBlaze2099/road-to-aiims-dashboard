@@ -1,0 +1,62 @@
+<div class="my-tests-section bg-gray-50 p-6 rounded-lg shadow-inner">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Test Results</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+            <label for="testType">Test Type:</label>
+            <select id="testType" class="w-full p-2 border rounded-lg">
+                <option value="">Select Test Type</option>
+                <option value="unit">Unit Test</option>
+                <option value="bbcts">BBCTS</option>
+                <option value="quarterly">Quarterly Exam</option>
+                <option value="mission_neet">Mission NEET</option>
+                </select>
+        </div>
+        <div>
+            <label for="testDate">Test Date:</label>
+            <input type="date" id="testDate" class="w-full p-2 border rounded-lg">
+        </div>
+        <div>
+            <label for="physicsScore">Physics Score (out of 180):</label>
+            <input type="number" id="physicsScore" class="w-full p-2 border rounded-lg" min="0" max="180">
+        </div>
+        <div>
+            <label for="chemistryScore">Chemistry Score (out of 180):</label>
+            <input type="number" id="chemistryScore" class="w-full p-2 border rounded-lg" min="0" max="180">
+        </div>
+        <div>
+            <label for="biologyScore">Biology Score (out of 360):</label>
+            <input type="number" id="biologyScore" class="w-full p-2 border rounded-lg" min="0" max="360">
+        </div>
+        <div>
+            <label for="totalScore">Total Score (out of 720):</label>
+            <input type="number" id="totalScore" class="w-full p-2 border rounded-lg" min="0" max="720" readonly>
+        </div>
+        <div class="col-span-1 md:col-span-2">
+            <label for="testComments">Comments (Optional):</label>
+            <textarea id="testComments" rows="2" class="w-full p-2 border rounded-lg"></textarea>
+        </div>
+        <div class="col-span-1 md:col-span-2">
+            <button id="addTestResultBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">Add Test Result</button>
+        </div>
+    </div>
+
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Your Test History</h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow-md rounded-lg" id="testResultsTable">
+            <thead>
+                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Date</th>
+                    <th class="py-3 px-6 text-left">Type</th>
+                    <th class="py-3 px-6 text-left">Physics</th>
+                    <th class="py-3 px-6 text-left">Chemistry</th>
+                    <th class="py-3 px-6 text-left">Biology</th>
+                    <th class="py-3 px-6 text-left">Total</th>
+                    <th class="py-3 px-6 text-left">Comments</th>
+                    <th class="py-3 px-6 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light" id="testResultsTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
