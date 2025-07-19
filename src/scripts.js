@@ -9,7 +9,7 @@ let completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
 let chapterGoals = JSON.parse(localStorage.getItem('chapterGoals')) || [];
 let mcqQuotas = JSON.parse(localStorage.getItem('mcqQuotas')) || { physics: 100, chemistry: 100, biology: 150 }; // Default quotas
 let overallGoal = JSON.parse(localStorage.getItem('overallGoal')) || null;
-let completedTopics = JSON.parse(localStorage.getItem('completedTopics')) || {}; // { "subject": { "chapter": ["topic1", "topic2"] } }
+let completedTopics = JSON.parse(localStorage.getItem('completedTopics')) || {}; // { "subject": { "book": { "chapter": ["topic1", "topic2"] } } }
 
 // --- DOM Elements ---
 const authSection = document.getElementById('authSection');
@@ -42,7 +42,7 @@ const completedTabContent = document.getElementById('completedTabContent');
 
 const logDateInput = document.getElementById('logDate');
 const logSubjectSelect = document.getElementById('logSubject');
-const logBookSelect = document.getElementById('logBook');
+const logBookSelect = document.getElementById('logBook'); // New Book/Module Select
 const logChapterSelect = document.getElementById('logChapter');
 const logTopicsContainer = document.getElementById('logTopicsContainer');
 const logTopicsChecklist = document.getElementById('logTopicsChecklist');
@@ -80,7 +80,8 @@ const testResultsTableBody = document.getElementById('testResultsTableBody');
 // Upcoming Plans Elements
 const planDateInput = document.getElementById('planDate');
 const planSubjectSelect = document.getElementById('planSubject');
-const planChapterInput = document.getElementById('planChapter');
+const planBookSelect = document.getElementById('planBook'); // New Book/Module Select
+const planChapterSelect = document.getElementById('planChapter'); // Changed to select for consistency
 const planStudyTypeSelect = document.getElementById('planStudyType');
 const planEstimatedTimeInput = document.getElementById('planEstimatedTime');
 const addPlanBtn = document.getElementById('addPlanBtn');
@@ -104,9 +105,10 @@ let testScoreChart, subjectAverageChart, timeSpentChart, mcqsPracticedChart, goa
 
 // Goals Elements
 const goalSubjectSelect = document.getElementById('goalSubject');
-const goalBookInput = document.getElementById('goalBook');
-const goalChapterNameInput = document.getElementById('goalChapterName');
-const goalTopicsInput = document.getElementById('goalTopics');
+const goalBookSelect = document.getElementById('goalBook'); // Changed to select for consistency
+const goalChapterSelect = document.getElementById('goalChapterName'); // Changed to select for consistency
+const goalTopicsContainer = document.getElementById('goalTopicsContainer'); // New container for topics checklist
+const goalTopicsChecklist = document.getElementById('goalTopicsChecklist'); // New topics checklist
 const goalDueDateInput = document.getElementById('goalDueDate');
 const addChapterGoalBtn = document.getElementById('addChapterGoalBtn');
 const chapterGoalsTableBody = document.getElementById('chapterGoalsTableBody');
@@ -261,6 +263,11 @@ dailyRoutineTabs.forEach(button => {
 
 
 // --- Dynamic Dropdowns (Subject, Book, Chapter, Topics) ---
+
+/**
+ * Populates the Subject dropdowns across Daily Log, Goals, and Upcoming Plans sections.
+ * This function remains largely the same as the top-level keys in ALL_SUBJECT_DATA are subjects.
+ */
 function populateSubjectDropdowns() {
     const subjects = Object.keys(ALL_SUBJECT_DATA);
 
@@ -292,190 +299,289 @@ function populateSubjectDropdowns() {
     });
 }
 
+/**
+ * Populates the Book/Module dropdown for the Daily Log section based on the selected subject.
+ */
 function populateLogBookDropdown() {
     const selectedSubject = logSubjectSelect.value;
     logBookSelect.innerHTML = '<option value="">Select Book/Module</option>';
-    if (selectedSubject) {
-        // For simplicity, assuming each chapter in ALL_SUBJECT_DATA implies a "book" for now.
-        // In a real app, you'd likely have a separate 'books' structure.
-        // For now, let's just use a generic 'Main Book' or 'NCERT' for each subject.
-        const defaultBook = selectedSubject === 'physics' ? 'NCERT Physics' :
-                             selectedSubject === 'chemistry' ? 'NCERT Chemistry' :
-                             selectedSubject === 'biology' ? 'NCERT Biology' : '';
-
-        if (defaultBook) {
-            const option = document.createElement('option');
-            option.value = defaultBook;
-            option.textContent = defaultBook;
-            logBookSelect.appendChild(option);
-        }
-
-        // Also add options from chapterGoals where a book is specified for the selected subject
-        const uniqueBooks = new Set();
-        chapterGoals.filter(goal => goal.subject === selectedSubject && goal.book)
-                    .forEach(goal => uniqueBooks.add(goal.book));
-        
-        Array.from(uniqueBooks).sort().forEach(bookName => {
-            const option = document.createElement('option');
-            option.value = bookName;
-            option.textContent = bookName;
-            logBookSelect.appendChild(option);
-        });
-
-        // Add a general "Other" option
-        const otherOption = document.createElement('option');
-        otherOption.value = 'Other';
-        otherOption.textContent = 'Other';
-        logBookSelect.appendChild(otherOption);
-    }
-    // Automatically select the first option if there's only one (other than default)
-    if (logBookSelect.options.length === 2 && logBookSelect.options[1].value !== 'Other') {
-        logBookSelect.value = logBookSelect.options[1].value;
-        populateLogChapterDropdown(); // Trigger chapter population
-    }
-}
-
-
-function populateLogChapterDropdown() {
-    const selectedSubject = logSubjectSelect.value;
-    const selectedBook = logBookSelect.value;
-    logChapterSelect.innerHTML = '<option value="">Select Chapter</option>';
-    logTopicsContainer.classList.add('hidden'); // Hide topics until chapter is selected
+    logChapterSelect.innerHTML = '<option value="">Select Chapter</option>'; // Reset chapter dropdown
+    logTopicsContainer.classList.add('hidden'); // Hide topics
 
     if (selectedSubject && ALL_SUBJECT_DATA[selectedSubject]) {
-        const chapters = Object.keys(ALL_SUBJECT_DATA[selectedSubject]);
-        chapters.sort().forEach(chapter => {
+        const books = ALL_SUBJECT_DATA[selectedSubject];
+        books.forEach(book => {
             const option = document.createElement('option');
-            option.value = chapter;
-            option.textContent = chapter;
-            logChapterSelect.appendChild(option);
+            option.value = book.name;
+            option.textContent = book.name;
+            logBookSelect.appendChild(option);
         });
     }
 }
 
-function populateLogTopicsChecklist() {
+/**
+ * Populates the Chapter dropdown for the Daily Log section based on the selected subject and book.
+ */
+function populateLogChapterDropdown() {
     const selectedSubject = logSubjectSelect.value;
-    const selectedChapter = logChapterSelect.value;
-    logTopicsChecklist.innerHTML = ''; // Clear previous topics
+    const selectedBookName = logBookSelect.value;
+    logChapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+    logTopicsContainer.classList.add('hidden'); // Hide topics
 
-    if (selectedSubject && selectedChapter && ALL_SUBJECT_DATA[selectedSubject] && ALL_SUBJECT_DATA[selectedSubject][selectedChapter]) {
-        const topics = ALL_SUBJECT_DATA[selectedSubject][selectedChapter];
-        if (topics && topics.length > 0 && topics[0] !== "General Topics") { // Don't show for placeholders
-            logTopicsContainer.classList.remove('hidden');
-            topics.forEach(topic => {
-                const label = document.createElement('label');
-                label.className = 'inline-flex items-center';
-                label.innerHTML = `
-                    <input type="checkbox" name="logTopic" value="${topic}" class="form-checkbox text-indigo-600 rounded">
-                    <span class="ml-2 text-gray-700">${topic}</span>
-                `;
-                logTopicsChecklist.appendChild(label);
+    if (selectedSubject && selectedBookName && ALL_SUBJECT_DATA[selectedSubject]) {
+        const selectedBook = ALL_SUBJECT_DATA[selectedSubject].find(book => book.name === selectedBookName);
+        if (selectedBook && selectedBook.chapters) {
+            selectedBook.chapters.forEach(chapter => {
+                const option = document.createElement('option');
+                option.value = chapter.name;
+                option.textContent = chapter.name;
+                logChapterSelect.appendChild(option);
             });
-        } else {
-            logTopicsContainer.classList.add('hidden'); // Hide if no specific topics or only placeholder
         }
-    } else {
-        logTopicsContainer.classList.add('hidden');
     }
 }
 
-function populateMCQSourceDropdown() {
-    logMCQSourceSelect.innerHTML = '<option value="">Select Source</option>';
-    // Add options from chapterGoals' books
-    const uniqueBookSources = new Set();
-    chapterGoals.forEach(goal => {
-        if (goal.book) uniqueBookSources.add(goal.book);
-    });
-    Array.from(uniqueBookSources).sort().forEach(source => {
-        const option = document.createElement('option');
-        option.value = source;
-        option.textContent = source;
-        logMCQSourceSelect.appendChild(option);
-    });
+/**
+ * Populates the Topics checklist for the Daily Log section based on the selected subject, book, and chapter.
+ */
+function populateLogTopicsChecklist() {
+    const selectedSubject = logSubjectSelect.value;
+    const selectedBookName = logBookSelect.value;
+    const selectedChapterName = logChapterSelect.value;
+    logTopicsChecklist.innerHTML = ''; // Clear previous topics
+    logTopicsContainer.classList.add('hidden'); // Hide by default
 
-    // Add common sources
-    ['NCERT', 'Coaching Module', 'Previous Year Questions (PYQ)', 'Doubt Session'].forEach(source => {
-        const option = document.createElement('option');
-        option.value = source;
-        option.textContent = source;
-        logMCQSourceSelect.appendChild(option);
-    });
+    if (selectedSubject && selectedBookName && selectedChapterName && ALL_SUBJECT_DATA[selectedSubject]) {
+        const selectedBook = ALL_SUBJECT_DATA[selectedSubject].find(book => book.name === selectedBookName);
+        if (selectedBook && selectedBook.chapters) {
+            const selectedChapter = selectedBook.chapters.find(chapter => chapter.name === selectedChapterName);
+            if (selectedChapter && selectedChapter.topics) {
+                const topics = selectedChapter.topics;
+                if (topics.length > 0 && topics[0] !== "General Topics") { // Don't show for placeholders
+                    logTopicsContainer.classList.remove('hidden');
+                    topics.forEach(topic => {
+                        const label = document.createElement('label');
+                        label.className = 'inline-flex items-center';
+                        label.innerHTML = `
+                            <input type="checkbox" name="logTopic" value="${topic}" class="form-checkbox text-indigo-600 rounded">
+                            <span class="ml-2 text-gray-700">${topic}</span>
+                        `;
+                        logTopicsChecklist.appendChild(label);
+                    });
+                }
+            }
+        }
+    }
 }
 
-// --- Event Listeners for Dynamic Dropdowns ---
-logSubjectSelect.addEventListener('change', () => {
-    populateLogBookDropdown();
-    populateLogChapterDropdown(); // Also clear chapter when subject changes
-    populateLogTopicsChecklist(); // Also clear topics
-});
-logBookSelect.addEventListener('change', populateLogChapterDropdown);
-logChapterSelect.addEventListener('change', populateLogTopicsChecklist);
+/**
+ * Populates the Book/Module dropdown for the Goals section.
+ */
+function populateGoalBookDropdown() {
+    const selectedSubject = goalSubjectSelect.value;
+    goalBookSelect.innerHTML = '<option value="">Select Book/Module</option>';
+    goalChapterSelect.innerHTML = '<option value="">Select Chapter</option>'; // Reset chapter dropdown
+    goalTopicsChecklist.innerHTML = ''; // Reset topics
+    goalTopicsContainer.classList.add('hidden'); // Hide topics
 
-// Populate subject dropdowns initially
-populateSubjectDropdowns();
-populateMCQSourceDropdown();
+    if (selectedSubject && ALL_SUBJECT_DATA[selectedSubject]) {
+        const books = ALL_SUBJECT_DATA[selectedSubject];
+        books.forEach(book => {
+            const option = document.createElement('option');
+            option.value = book.name;
+            option.textContent = book.name;
+            goalBookSelect.appendChild(option);
+        });
+    }
+}
+
+/**
+ * Populates the Chapter dropdown for the Goals section based on the selected subject and book.
+ */
+function populateGoalChapterDropdown() {
+    const selectedSubject = goalSubjectSelect.value;
+    const selectedBookName = goalBookSelect.value;
+    goalChapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+    goalTopicsChecklist.innerHTML = ''; // Reset topics
+    goalTopicsContainer.classList.add('hidden'); // Hide topics
+
+    if (selectedSubject && selectedBookName && ALL_SUBJECT_DATA[selectedSubject]) {
+        const selectedBook = ALL_SUBJECT_DATA[selectedSubject].find(book => book.name === selectedBookName);
+        if (selectedBook && selectedBook.chapters) {
+            selectedBook.chapters.forEach(chapter => {
+                const option = document.createElement('option');
+                option.value = chapter.name;
+                option.textContent = chapter.name;
+                goalChapterSelect.appendChild(option);
+            });
+        }
+    }
+}
+
+/**
+ * Populates the Topics checklist for the Goals section based on the selected subject, book, and chapter.
+ */
+function populateGoalTopicsChecklist() {
+    const selectedSubject = goalSubjectSelect.value;
+    const selectedBookName = goalBookSelect.value;
+    const selectedChapterName = goalChapterSelect.value;
+    goalTopicsChecklist.innerHTML = ''; // Clear previous topics
+    goalTopicsContainer.classList.add('hidden'); // Hide by default
+
+    if (selectedSubject && selectedBookName && selectedChapterName && ALL_SUBJECT_DATA[selectedSubject]) {
+        const selectedBook = ALL_SUBJECT_DATA[selectedSubject].find(book => book.name === selectedBookName);
+        if (selectedBook && selectedBook.chapters) {
+            const selectedChapter = selectedBook.chapters.find(chapter => chapter.name === selectedChapterName);
+            if (selectedChapter && selectedChapter.topics) {
+                const topics = selectedChapter.topics;
+                if (topics.length > 0 && topics[0] !== "General Topics") { // Don't show for placeholders
+                    goalTopicsContainer.classList.remove('hidden');
+                    topics.forEach(topic => {
+                        const label = document.createElement('label');
+                        label.className = 'inline-flex items-center';
+                        label.innerHTML = `
+                            <input type="checkbox" name="goalTopic" value="${topic}" class="form-checkbox text-indigo-600 rounded">
+                            <span class="ml-2 text-gray-700">${topic}</span>
+                        `;
+                        goalTopicsChecklist.appendChild(label);
+                    });
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ * Populates the Book/Module dropdown for the Upcoming Plans section.
+ */
+function populatePlanBookDropdown() {
+    const selectedSubject = planSubjectSelect.value;
+    planBookSelect.innerHTML = '<option value="">Select Book/Module</option>';
+    planChapterSelect.innerHTML = '<option value="">Select Chapter</option>'; // Reset chapter dropdown
+
+    if (selectedSubject && ALL_SUBJECT_DATA[selectedSubject]) {
+        const books = ALL_SUBJECT_DATA[selectedSubject];
+        books.forEach(book => {
+            const option = document.createElement('option');
+            option.value = book.name;
+            option.textContent = book.name;
+            planBookSelect.appendChild(option);
+        });
+    }
+}
+
+/**
+ * Populates the Chapter dropdown for the Upcoming Plans section based on the selected subject and book.
+ */
+function populatePlanChapterDropdown() {
+    const selectedSubject = planSubjectSelect.value;
+    const selectedBookName = planBookSelect.value;
+    planChapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+
+    if (selectedSubject && selectedBookName && ALL_SUBJECT_DATA[selectedSubject]) {
+        const selectedBook = ALL_SUBJECT_DATA[selectedSubject].find(book => book.name === selectedBookName);
+        if (selectedBook && selectedBook.chapters) {
+            selectedBook.chapters.forEach(chapter => {
+                const option = document.createElement('option');
+                option.value = chapter.name;
+                option.textContent = chapter.name;
+                planChapterSelect.appendChild(option);
+            });
+        }
+    }
+}
+
+
+// --- Event Listeners for Dynamic Dropdowns ---
+logSubjectSelect.addEventListener('change', populateLogBookDropdown);
+logBookSelect.addEventListener('change', populateLogChapterDropdown);
+logChapterSelect.addEventListener('change', populateLogTopicsChecklist); // New listener for topics
+
+goalSubjectSelect.addEventListener('change', populateGoalBookDropdown);
+goalBookSelect.addEventListener('change', populateGoalChapterDropdown);
+goalChapterSelect.addEventListener('change', populateGoalTopicsChecklist); // New listener for topics
+
+planSubjectSelect.addEventListener('change', populatePlanBookDropdown);
+planBookSelect.addEventListener('change', populatePlanChapterDropdown);
 
 
 // --- Daily Log Functions ---
 function addLogEntry() {
     const date = logDateInput.value;
     const subject = logSubjectSelect.value;
-    const book = logBookSelect.value;
+    const book = logBookSelect.value; // Get book value
     const chapter = logChapterSelect.value;
-    const selectedTopics = Array.from(document.querySelectorAll('input[name="logTopic"]:checked'))
-                                .map(cb => cb.value);
-    const studyTypes = Array.from(document.querySelectorAll('input[name="studyType"]:checked'))
-                             .map(cb => cb.value);
+    const selectedTopics = Array.from(logTopicsChecklist.querySelectorAll('input[name="logTopic"]:checked'))
+                               .map(checkbox => checkbox.value);
     const mcqsPracticed = parseInt(logMCQsPracticedInput.value) || 0;
     const mcqSource = logMCQSourceSelect.value;
     const customMCQSource = logCustomMCQSourceInput.value;
     const customMCQsCount = parseInt(logCustomMCQsCountInput.value) || 0;
     const timeSpent = logTimeSpentInput.value;
-    const comments = logCommentsInput.value.trim();
+    const comments = logCommentsInput.value;
 
-    if (!date || !subject || !chapter || studyTypes.length === 0) {
-        alert('Please fill in Date, Subject, Chapter, and at least one Study Type.');
+    if (!date || !subject || !book || !chapter || (selectedTopics.length === 0 && mcqsPracticed === 0 && timeSpent === '')) {
+        displayMessage(document.getElementById('dailyLogMessage'), 'Please fill in all required fields (Date, Subject, Book, Chapter, and at least one of Topics, MCQs, or Time Spent).', 'error');
         return;
     }
 
-    const newEntry = {
+    const totalMCQs = mcqsPracticed + customMCQsCount;
+
+    const newLog = {
         id: generateId(),
         date,
         subject,
-        book,
+        book, // Store book
         chapter,
         topics: selectedTopics,
-        studyTypes,
-        mcqsPracticed,
-        mcqSource: mcqSource || customMCQSource,
-        customMCQsCount, // Store custom count separately
+        mcqsPracticed: totalMCQs,
+        mcqSource: mcqSource === 'Other' ? customMCQSource : mcqSource,
         timeSpent,
-        comments
+        comments,
+        type: 'chapter_study' // Default type for now, can be expanded
     };
-
-    dailyLogs.push(newEntry);
+    dailyLogs.push(newLog);
     saveData();
     renderDailyLogEntries();
     updateDailyRoutineSummary();
-    updateMCQQuotaCharts();
-    trackCompletedTopics(subject, chapter, selectedTopics);
+    drawAllCharts(); // Update charts after new data
+    updateMCQQuotaCharts(); // Update MCQ charts
+
+    // Mark topics as completed
+    if (selectedTopics.length > 0) {
+        if (!completedTopics[subject]) {
+            completedTopics[subject] = {};
+        }
+        if (!completedTopics[subject][book]) { // New book level
+            completedTopics[subject][book] = {};
+        }
+        if (!completedTopics[subject][book][chapter]) {
+            completedTopics[subject][book][chapter] = [];
+        }
+        selectedTopics.forEach(topic => {
+            if (!completedTopics[subject][book][chapter].includes(topic)) {
+                completedTopics[subject][book][chapter].push(topic);
+            }
+        });
+        saveData();
+    }
 
     // Clear form
     logSubjectSelect.value = '';
-    logBookSelect.innerHTML = '<option value="">Select Book/Module</option>'; // Reset book
-    logChapterSelect.innerHTML = '<option value="">Select Chapter</option>'; // Reset chapter
-    logTopicsContainer.classList.add('hidden');
+    logBookSelect.value = ''; // Clear book
+    logChapterSelect.value = '';
     logTopicsChecklist.innerHTML = '';
-    document.querySelectorAll('input[name="studyType"]').forEach(cb => cb.checked = false);
+    logTopicsContainer.classList.add('hidden');
     logMCQsPracticedInput.value = '';
     logMCQSourceSelect.value = '';
     logCustomMCQSourceInput.value = '';
     logCustomMCQsCountInput.value = '';
     logTimeSpentInput.value = '';
     logCommentsInput.value = '';
-    populateSubjectDropdowns(); // Re-populate subject dropdowns to reset
-    populateMCQSourceDropdown(); // Re-populate MCQ source dropdown
+    displayMessage(document.getElementById('dailyLogMessage'), 'Log entry added successfully!', 'success');
 }
+
 
 function renderDailyLogEntries() {
     dailyLogTableBody.innerHTML = '';
@@ -483,139 +589,63 @@ function renderDailyLogEntries() {
     const todayLogs = dailyLogs.filter(log => log.date === today);
 
     if (todayLogs.length === 0) {
-        dailyLogTableBody.innerHTML = '<tr><td colspan="7" class="py-3 px-6 text-center">No entries for today.</td></tr>';
+        dailyLogTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No log entries for today.</td></tr>';
         return;
     }
 
-    todayLogs.forEach(entry => {
+    todayLogs.forEach(log => {
         const row = dailyLogTableBody.insertRow();
+        row.className = 'border-b border-gray-200 hover:bg-gray-100';
         row.innerHTML = `
-            <td class="py-3 px-6 whitespace-nowrap capitalize">${entry.subject}</td>
-            <td class="py-3 px-6">
-                <strong>${entry.chapter}</strong><br>
-                <span class="text-xs text-gray-500">${entry.topics.join(', ') || 'N/A'}</span>
-            </td>
-            <td class="py-3 px-6">${entry.studyTypes.join(', ')}</td>
-            <td class="py-3 px-6">Book: ${entry.mcqsPracticed} <br> Other: ${entry.customMCQsCount} (${entry.mcqSource})</td>
-            <td class="py-3 px-6">${entry.timeSpent}</td>
-            <td class="py-3 px-6 text-sm">${entry.comments || 'N/A'}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${log.date}</td>
+            <td class="py-3 px-6 text-left">${log.subject.charAt(0).toUpperCase() + log.subject.slice(1)}</td>
+            <td class="py-3 px-6 text-left">${log.book}</td>
+            <td class="py-3 px-6 text-left">${log.chapter}</td>
+            <td class="py-3 px-6 text-left">${log.topics.join(', ') || 'N/A'}</td>
+            <td class="py-3 px-6 text-center">${log.mcqsPracticed || 0}</td>
+            <td class="py-3 px-6 text-center">${log.timeSpent || '0h 0m'}</td>
             <td class="py-3 px-6 text-center">
-                <button data-id="${entry.id}" class="edit-log-btn text-blue-500 hover:text-blue-700 mr-2">Edit</button>
-                <button data-id="${entry.id}" class="delete-log-btn text-red-500 hover:text-red-700">Delete</button>
+                <button onclick="editLogEntry('${log.id}')" class="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
+                <button onclick="deleteLogEntry('${log.id}')" class="text-red-600 hover:text-red-800">Delete</button>
             </td>
         `;
-    });
-
-    document.querySelectorAll('.edit-log-btn').forEach(button => {
-        button.addEventListener('click', (e) => editLogEntry(e.target.dataset.id));
-    });
-    document.querySelectorAll('.delete-log-btn').forEach(button => {
-        button.addEventListener('click', (e) => deleteLogEntry(e.target.dataset.id));
     });
 }
 
 function editLogEntry(id) {
-    const entry = dailyLogs.find(e => e.id === id);
-    if (!entry) return;
+    const log = dailyLogs.find(entry => entry.id === id);
+    if (log) {
+        logDateInput.value = log.date;
+        logSubjectSelect.value = log.subject;
+        populateLogBookDropdown(); // Populate book dropdown first
+        setTimeout(() => { // Use timeout to ensure options are rendered
+            logBookSelect.value = log.book;
+            populateLogChapterDropdown(); // Populate chapter dropdown
+            setTimeout(() => {
+                logChapterSelect.value = log.chapter;
+                populateLogTopicsChecklist(); // Populate topics checklist
+                setTimeout(() => {
+                    log.topics.forEach(topic => {
+                        const checkbox = logTopicsChecklist.querySelector(`input[value="${topic}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }, 50);
+            }, 50);
+        }, 50);
 
-    // Populate form fields for editing
-    logDateInput.value = entry.date;
-    logSubjectSelect.value = entry.subject;
-    populateLogBookDropdown(); // Re-populate based on subject
-    logBookSelect.value = entry.book;
-    populateLogChapterDropdown(); // Re-populate based on book
-    logChapterSelect.value = entry.chapter;
-    populateLogTopicsChecklist(); // Re-populate based on chapter
+        logMCQsPracticedInput.value = log.mcqsPracticed;
+        logMCQSourceSelect.value = log.mcqSource; // This might need adjustment if custom source was used
+        logTimeSpentInput.value = log.timeSpent;
+        logCommentsInput.value = log.comments;
 
-    // Select topics
-    document.querySelectorAll('input[name="logTopic"]').forEach(cb => {
-        cb.checked = entry.topics.includes(cb.value);
-    });
-
-    // Select study types
-    document.querySelectorAll('input[name="studyType"]').forEach(cb => {
-        cb.checked = entry.studyTypes.includes(cb.value);
-    });
-
-    logMCQsPracticedInput.value = entry.mcqsPracticed;
-    logMCQSourceSelect.value = entry.mcqSource;
-    logCustomMCQSourceInput.value = entry.mcqSource.includes('Other') || !['NCERT', 'Coaching Module', 'Previous Year Questions (PYQ)', 'Doubt Session'].includes(entry.mcqSource) ? entry.mcqSource : '';
-    logCustomMCQsCountInput.value = entry.customMCQsCount;
-    logTimeSpentInput.value = entry.timeSpent;
-    logCommentsInput.value = entry.comments;
-
-    // Change button to update
-    addLogEntryBtn.textContent = 'Update Log Entry';
-    addLogEntryBtn.onclick = () => updateLogEntry(id);
-}
-
-function updateLogEntry(id) {
-    const index = dailyLogs.findIndex(e => e.id === id);
-    if (index === -1) return;
-
-    // Get updated values from form
-    const date = logDateInput.value;
-    const subject = logSubjectSelect.value;
-    const book = logBookSelect.value;
-    const chapter = logChapterSelect.value;
-    const selectedTopics = Array.from(document.querySelectorAll('input[name="logTopic"]:checked'))
-                                .map(cb => cb.value);
-    const studyTypes = Array.from(document.querySelectorAll('input[name="studyType"]:checked'))
-                             .map(cb => cb.value);
-    const mcqsPracticed = parseInt(logMCQsPracticedInput.value) || 0;
-    const mcqSource = logMCQSourceSelect.value;
-    const customMCQSource = logCustomMCQSourceInput.value;
-    const customMCQsCount = parseInt(logCustomMCQsCountInput.value) || 0;
-    const timeSpent = logTimeSpentInput.value;
-    const comments = logCommentsInput.value.trim();
-
-    if (!date || !subject || !chapter || studyTypes.length === 0) {
-        alert('Please fill in Date, Subject, Chapter, and at least one Study Type.');
-        return;
+        // Remove the original entry, it will be re-added on save
+        dailyLogs = dailyLogs.filter(entry => entry.id !== id);
+        saveData();
+        renderDailyLogEntries();
+        updateDailyRoutineSummary();
+        displayMessage(document.getElementById('dailyLogMessage'), 'Log entry loaded for editing.', 'info');
     }
-
-    dailyLogs[index] = {
-        id: id,
-        date,
-        subject,
-        book,
-        chapter,
-        topics: selectedTopics,
-        studyTypes,
-        mcqsPracticed,
-        mcqSource: mcqSource || customMCQSource,
-        customMCQsCount,
-        timeSpent,
-        comments
-    };
-
-    saveData();
-    renderDailyLogEntries();
-    updateDailyRoutineSummary();
-    updateMCQQuotaCharts();
-    trackCompletedTopics(subject, chapter, selectedTopics);
-
-
-    // Reset form and button
-    addLogEntryBtn.textContent = 'Add Log Entry';
-    addLogEntryBtn.onclick = addLogEntry; // Reset to original add function
-    // Clear form fields
-    logSubjectSelect.value = '';
-    logBookSelect.innerHTML = '<option value="">Select Book/Module</option>';
-    logChapterSelect.innerHTML = '<option value="">Select Chapter</option>';
-    logTopicsContainer.classList.add('hidden');
-    logTopicsChecklist.innerHTML = '';
-    document.querySelectorAll('input[name="studyType"]').forEach(cb => cb.checked = false);
-    logMCQsPracticedInput.value = '';
-    logMCQSourceSelect.value = '';
-    logCustomMCQSourceInput.value = '';
-    logCustomMCQsCountInput.value = '';
-    logTimeSpentInput.value = '';
-    logCommentsInput.value = '';
-    populateSubjectDropdowns();
-    populateMCQSourceDropdown();
 }
-
 
 function deleteLogEntry(id) {
     if (confirm('Are you sure you want to delete this log entry?')) {
@@ -623,8 +653,9 @@ function deleteLogEntry(id) {
         saveData();
         renderDailyLogEntries();
         updateDailyRoutineSummary();
+        drawAllCharts();
         updateMCQQuotaCharts();
-        drawAllCharts(); // Re-draw charts as data has changed
+        displayMessage(document.getElementById('dailyLogMessage'), 'Log entry deleted successfully!', 'success');
     }
 }
 
@@ -632,128 +663,27 @@ function updateDailyRoutineSummary() {
     const today = new Date().toISOString().split('T')[0];
     const todayLogs = dailyLogs.filter(log => log.date === today);
 
-    const uniqueChaptersToday = new Set();
-    let totalTimeTodayMinutes = 0;
+    const chaptersDone = new Set();
+    let totalTimeSpentMinutes = 0;
     let totalMCQsToday = 0;
 
     todayLogs.forEach(log => {
-        uniqueChaptersToday.add(log.chapter);
-        const [hours, minutes] = log.timeSpent.split(':').map(Number);
-        totalTimeTodayMinutes += (hours * 60) + minutes;
-        totalMCQsToday += log.mcqsPracticed + log.customMCQsCount;
+        chaptersDone.add(`${log.subject}-${log.book}-${log.chapter}`); // Include book in unique chapter tracking
+        const [hours, minutes] = (log.timeSpent || '0h 0m').split('h ').map(Number);
+        totalTimeSpentMinutes += (hours * 60) + minutes;
+        totalMCQsToday += log.mcqsPracticed || 0;
     });
 
-    chaptersDoneTodayElem.textContent = uniqueChaptersToday.size;
-    const hours = Math.floor(totalTimeTodayMinutes / 60);
-    const minutes = totalTimeTodayMinutes % 60;
-    timeSpentTodayElem.textContent = `${hours}h ${minutes}m`;
+    chaptersDoneTodayElem.textContent = chaptersDone.size;
+    const displayHours = Math.floor(totalTimeSpentMinutes / 60);
+    const displayMinutes = totalTimeSpentMinutes % 60;
+    timeSpentTodayElem.textContent = `${displayHours}h ${displayMinutes}m`;
     totalMCQsTodayElem.textContent = totalMCQsToday;
-    pendingBacklogsElem.textContent = backlogs.length; // From backlogs array
+    pendingBacklogsElem.textContent = backlogs.length;
 }
 
 
-// --- MCQ Quota Chart Functions ---
-function createDoughnutChart(canvasId, label, initialValue, maxValue, color) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    const data = {
-        labels: ['Completed', 'Remaining'],
-        datasets: [{
-            data: [initialValue, maxValue - initialValue],
-            backgroundColor: [color, '#e0e0e0'],
-            borderColor: [color, '#e0e0e0'],
-            borderWidth: 1
-        }]
-    };
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '80%',
-        plugins: {
-            tooltip: { enabled: false },
-            legend: { display: false }
-        },
-        elements: {
-            arc: {
-                borderWidth: 0 // Remove border around arcs
-            }
-        }
-    };
-    return new Chart(ctx, {
-        type: 'doughnut',
-        data: data,
-        options: options,
-        plugins: [{
-            id: 'textCenter',
-            beforeDraw: function(chart) {
-                const width = chart.width;
-                const height = chart.height;
-                const ctx = chart.ctx;
-                ctx.restore();
-                const fontSize = (height / 114).toFixed(2);
-                ctx.font = `bold ${fontSize}em sans-serif`;
-                ctx.textBaseline = "middle";
-                const text = `${Math.round((initialValue / maxValue) * 100)}%`;
-                const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                const textY = height / 2;
-                ctx.fillText(text, textX, textY);
-                ctx.save();
-            }
-        }]
-    });
-}
-
-function updateMCQQuotaCharts() {
-    const today = new Date().toISOString().split('T')[0];
-    const todayLogs = dailyLogs.filter(log => log.date === today);
-
-    let physicsMCQsDone = 0;
-    let chemistryMCQsDone = 0;
-    let biologyMCQsDone = 0;
-
-    todayLogs.forEach(log => {
-        if (log.studyTypes.includes('MCQs')) {
-            const totalMCQs = log.mcqsPracticed + log.customMCQsCount;
-            if (log.subject === 'physics') physicsMCQsDone += totalMCQs;
-            else if (log.subject === 'chemistry') chemistryMCQsDone += totalMCQs;
-            else if (log.subject === 'biology') biologyMCQsDone += totalMCQs;
-        }
-    });
-
-    // Destroy existing charts if they exist to prevent duplicates
-    if (physicsMCQChart) physicsMCQChart.destroy();
-    if (chemistryMCQChart) chemistryMCQChart.destroy();
-    if (biologyMCQChart) biologyMCQChart.destroy();
-
-    // Recreate charts
-    physicsMCQChart = createDoughnutChart(
-        'physicsMCQQuotaChart',
-        'Physics',
-        physicsMCQsDone,
-        mcqQuotas.physics,
-        '#2563eb' // Blue
-    );
-    chemistryMCQChart = createDoughnutChart(
-        'chemistryMCQQuotaChart',
-        'Chemistry',
-        chemistryMCQsDone,
-        mcqQuotas.chemistry,
-        '#10b981' // Green
-    );
-    biologyMCQChart = createDoughnutChart(
-        'biologyMCQQuotaChart',
-        'Biology',
-        biologyMCQsDone,
-        mcqQuotas.biology,
-        '#8b5cf6' // Purple
-    );
-
-    // Update messages below charts
-    document.getElementById('physicsMCQMessage').textContent = `${physicsMCQsDone}/${mcqQuotas.physics}`;
-    document.getElementById('chemistryMCQMessage').textContent = `${chemistryMCQsDone}/${mcqQuotas.chemistry}`;
-    document.getElementById('biologyMCQMessage').textContent = `${biologyMCQsDone}/${mcqQuotas.biology}`;
-}
-
-// --- Test Results Functions ---
+// --- My Tests Functions ---
 function addTestResult() {
     const type = testTypeSelect.value;
     const date = testDateInput.value;
@@ -761,14 +691,14 @@ function addTestResult() {
     const chemistry = parseInt(chemistryScoreInput.value);
     const biology = parseInt(biologyScoreInput.value);
     const total = parseInt(totalScoreInput.value);
-    const comments = testCommentsInput.value.trim();
+    const comments = testCommentsInput.value;
 
     if (!type || !date || isNaN(physics) || isNaN(chemistry) || isNaN(biology) || isNaN(total)) {
-        alert('Please fill in all test result fields correctly.');
+        displayMessage(document.getElementById('testResultFormMessage'), 'Please fill in all test result fields.', 'error');
         return;
     }
 
-    const newResult = {
+    const newTest = {
         id: generateId(),
         type,
         date,
@@ -778,15 +708,15 @@ function addTestResult() {
         total,
         comments
     };
-
-    testResults.push(newResult);
+    testResults.push(newTest);
     saveData();
     renderTestResults();
-    drawAllCharts(); // Update charts with new test data
+    drawAllCharts(); // Update charts after new data
+    displayMessage(document.getElementById('testResultFormMessage'), 'Test result added successfully!', 'success');
 
     // Clear form
     testTypeSelect.value = '';
-    // testDateInput.value = new Date().toISOString().split('T')[0]; // Reset to today
+    // testDateInput.value = ''; // Keep today's date
     physicsScoreInput.value = '';
     chemistryScoreInput.value = '';
     biologyScoreInput.value = '';
@@ -797,117 +727,50 @@ function addTestResult() {
 function renderTestResults() {
     testResultsTableBody.innerHTML = '';
     if (testResults.length === 0) {
-        testResultsTableBody.innerHTML = '<tr><td colspan="8" class="py-3 px-6 text-center">No test results added yet.</td></tr>';
+        testResultsTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-500">No test results added yet.</td></tr>';
         return;
     }
 
-    // Sort by date descending
-    const sortedResults = [...testResults].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    sortedResults.forEach(result => {
+    testResults.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(test => {
         const row = testResultsTableBody.insertRow();
+        row.className = 'border-b border-gray-200 hover:bg-gray-100';
         row.innerHTML = `
-            <td class="py-3 px-6 whitespace-nowrap">${result.date}</td>
-            <td class="py-3 px-6 capitalize">${result.type.replace('_', ' ')}</td>
-            <td class="py-3 px-6">${result.physics}</td>
-            <td class="py-3 px-6">${result.chemistry}</td>
-            <td class="py-3 px-6">${result.biology}</td>
-            <td class="py-3 px-6 font-bold">${result.total}</td>
-            <td class="py-3 px-6 text-sm">${result.comments || 'N/A'}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${test.date}</td>
+            <td class="py-3 px-6 text-left">${test.type.charAt(0).toUpperCase() + test.type.slice(1)}</td>
+            <td class="py-3 px-6 text-center">${test.physics}</td>
+            <td class="py-3 px-6 text-center">${test.chemistry}</td>
+            <td class="py-3 px-6 text-center">${test.biology}</td>
+            <td class="py-3 px-6 text-center font-bold">${test.total}</td>
+            <td class="py-3 px-6 text-left text-sm">${test.comments || 'N/A'}</td>
             <td class="py-3 px-6 text-center">
-                <button data-id="${result.id}" class="edit-test-btn text-blue-500 hover:text-blue-700 mr-2">Edit</button>
-                <button data-id="${result.id}" class="delete-test-btn text-red-500 hover:text-red-700">Delete</button>
+                <button onclick="deleteTestResult('${test.id}')" class="text-red-600 hover:text-red-800">Delete</button>
             </td>
         `;
     });
-
-    document.querySelectorAll('.edit-test-btn').forEach(button => {
-        button.addEventListener('click', (e) => editTestResult(e.target.dataset.id));
-    });
-    document.querySelectorAll('.delete-test-btn').forEach(button => {
-        button.addEventListener('click', (e) => deleteTestResult(e.target.dataset.id));
-    });
-}
-
-function editTestResult(id) {
-    const result = testResults.find(r => r.id === id);
-    if (!result) return;
-
-    testTypeSelect.value = result.type;
-    testDateInput.value = result.date;
-    physicsScoreInput.value = result.physics;
-    chemistryScoreInput.value = result.chemistry;
-    biologyScoreInput.value = result.biology;
-    totalScoreInput.value = result.total; // Should be auto-calculated but populate for edit
-    testCommentsInput.value = result.comments;
-
-    addTestResultBtn.textContent = 'Update Test Result';
-    addTestResultBtn.onclick = () => updateTestResult(id);
-}
-
-function updateTestResult(id) {
-    const index = testResults.findIndex(r => r.id === id);
-    if (index === -1) return;
-
-    const type = testTypeSelect.value;
-    const date = testDateInput.value;
-    const physics = parseInt(physicsScoreInput.value);
-    const chemistry = parseInt(chemistryScoreInput.value);
-    const biology = parseInt(biologyScoreInput.value);
-    const total = parseInt(totalScoreInput.value);
-    const comments = testCommentsInput.value.trim();
-
-    if (!type || !date || isNaN(physics) || isNaN(chemistry) || isNaN(biology) || isNaN(total)) {
-        alert('Please fill in all test result fields correctly.');
-        return;
-    }
-
-    testResults[index] = {
-        id: id,
-        type,
-        date,
-        physics,
-        chemistry,
-        biology,
-        total,
-        comments
-    };
-
-    saveData();
-    renderTestResults();
-    drawAllCharts();
-
-    addTestResultBtn.textContent = 'Add Test Result';
-    addTestResultBtn.onclick = addTestResult; // Reset button
-    // Clear form
-    testTypeSelect.value = '';
-    // testDateInput.value = new Date().toISOString().split('T')[0];
-    physicsScoreInput.value = '';
-    chemistryScoreInput.value = '';
-    biologyScoreInput.value = '';
-    totalScoreInput.value = '';
-    testCommentsInput.value = '';
 }
 
 function deleteTestResult(id) {
     if (confirm('Are you sure you want to delete this test result?')) {
-        testResults = testResults.filter(result => result.id !== id);
+        testResults = testResults.filter(test => test.id !== id);
         saveData();
         renderTestResults();
         drawAllCharts();
+        displayMessage(document.getElementById('testResultFormMessage'), 'Test result deleted successfully!', 'success');
     }
 }
+
 
 // --- Upcoming Plans Functions ---
 function addPlan() {
     const date = planDateInput.value;
     const subject = planSubjectSelect.value;
-    const chapter = planChapterInput.value.trim();
+    const book = planBookSelect.value; // Get book
+    const chapter = planChapterSelect.value; // Get chapter from select
     const studyType = planStudyTypeSelect.value;
     const estimatedTime = planEstimatedTimeInput.value;
 
-    if (!date || !subject || !chapter || !studyType || !estimatedTime) {
-        alert('Please fill in all upcoming plan fields.');
+    if (!date || !subject || !book || !chapter || !studyType || !estimatedTime) {
+        displayMessage(document.getElementById('planFormMessage'), 'Please fill in all upcoming plan fields.', 'error');
         return;
     }
 
@@ -915,142 +778,108 @@ function addPlan() {
         id: generateId(),
         date,
         subject,
+        book, // Store book
         chapter,
         studyType,
-        estimatedTime
+        estimatedTime,
+        isCompleted: false,
+        isBacklog: false
     };
-
     upcomingPlans.push(newPlan);
     saveData();
     renderUpcomingPlans();
+    displayMessage(document.getElementById('planFormMessage'), 'Plan added successfully!', 'success');
 
     // Clear form
-    planDateInput.value = new Date().toISOString().split('T')[0];
+    // planDateInput.value = ''; // Keep today's date
     planSubjectSelect.value = '';
-    planChapterInput.value = '';
+    planBookSelect.value = ''; // Clear book
+    planChapterSelect.value = '';
     planStudyTypeSelect.value = '';
     planEstimatedTimeInput.value = '';
-    populateSubjectDropdowns(); // Re-populate subject dropdown
 }
 
 function renderUpcomingPlans() {
     upcomingPlansTableBody.innerHTML = '';
-    if (upcomingPlans.length === 0) {
-        upcomingPlansTableBody.innerHTML = '<tr><td colspan="6" class="py-3 px-6 text-center">No upcoming plans.</td></tr>';
+    const today = new Date().toISOString().split('T')[0];
+    const filteredPlans = upcomingPlans.filter(plan => !plan.isCompleted && !plan.isBacklog);
+
+    if (filteredPlans.length === 0) {
+        upcomingPlansTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No upcoming plans.</td></tr>';
         return;
     }
 
-    const sortedPlans = [...upcomingPlans].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    sortedPlans.forEach(plan => {
+    filteredPlans.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(plan => {
         const row = upcomingPlansTableBody.insertRow();
+        row.className = 'border-b border-gray-200 hover:bg-gray-100';
+        // Add a class for past due plans
+        if (plan.date < today) {
+            row.classList.add('bg-red-50', 'text-red-700');
+        }
         row.innerHTML = `
-            <td class="py-3 px-6 whitespace-nowrap">${plan.date}</td>
-            <td class="py-3 px-6 capitalize">${plan.subject}</td>
-            <td class="py-3 px-6">${plan.chapter}</td>
-            <td class="py-3 px-6">${plan.studyType}</td>
-            <td class="py-3 px-6">${plan.estimatedTime}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${plan.date}</td>
+            <td class="py-3 px-6 text-left">${plan.subject.charAt(0).toUpperCase() + plan.subject.slice(1)}</td>
+            <td class="py-3 px-6 text-left">${plan.book}</td>
+            <td class="py-3 px-6 text-left">${plan.chapter}</td>
+            <td class="py-3 px-6 text-left">${plan.studyType}</td>
+            <td class="py-3 px-6 text-center">${plan.estimatedTime}</td>
             <td class="py-3 px-6 text-center">
-                <button data-id="${plan.id}" class="complete-plan-btn text-green-500 hover:text-green-700 mr-2">Complete</button>
-                <button data-id="${plan.id}" class="move-to-backlog-btn text-orange-500 hover:text-orange-700 mr-2">Backlog</button>
-                <button data-id="${plan.id}" class="edit-plan-btn text-blue-500 hover:text-blue-700 mr-2">Edit</button>
-                <button data-id="${plan.id}" class="delete-plan-btn text-red-500 hover:text-red-700">Delete</button>
+                <button onclick="markPlanCompleted('${plan.id}')" class="text-green-600 hover:text-green-800 mr-2">Complete</button>
+                <button onclick="markPlanBacklog('${plan.id}')" class="text-yellow-600 hover:text-yellow-800 mr-2">Backlog</button>
+                <button onclick="deletePlan('${plan.id}')" class="text-red-600 hover:text-red-800">Delete</button>
             </td>
         `;
     });
-
-    document.querySelectorAll('.complete-plan-btn').forEach(button => {
-        button.addEventListener('click', (e) => completePlan(e.target.dataset.id));
-    });
-    document.querySelectorAll('.move-to-backlog-btn').forEach(button => {
-        button.addEventListener('click', (e) => moveToBacklog(e.target.dataset.id));
-    });
-    document.querySelectorAll('.edit-plan-btn').forEach(button => {
-        button.addEventListener('click', (e) => editPlan(e.target.dataset.id));
-    });
-    document.querySelectorAll('.delete-plan-btn').forEach(button => {
-        button.addEventListener('click', (e) => deletePlan(e.target.dataset.id));
-    });
 }
 
-function completePlan(id) {
-    const index = upcomingPlans.findIndex(plan => plan.id === id);
-    if (index === -1) return;
-
-    const [completedPlan] = upcomingPlans.splice(index, 1);
-    completedTasks.push({ ...completedPlan, completionDate: new Date().toISOString().split('T')[0] });
-    saveData();
-    renderUpcomingPlans();
-    renderCompletedTasks();
+function markPlanCompleted(id) {
+    const planIndex = upcomingPlans.findIndex(p => p.id === id);
+    if (planIndex > -1) {
+        const plan = upcomingPlans[planIndex];
+        plan.isCompleted = true;
+        plan.completionDate = new Date().toISOString().split('T')[0];
+        completedTasks.push({ // Add to completed tasks for history
+            id: generateId(),
+            date: plan.completionDate,
+            subject: plan.subject,
+            book: plan.book, // Store book
+            chapter: plan.chapter,
+            topics: [], // No specific topics captured here, assume chapter done
+            type: plan.studyType,
+            mcqs: 0, // Not tracked via plans completion
+            time: plan.estimatedTime,
+            originalPlanId: plan.id
+        });
+        upcomingPlans.splice(planIndex, 1); // Remove from upcoming plans
+        saveData();
+        renderUpcomingPlans();
+        renderCompletedTasks();
+        displayMessage(document.getElementById('planFormMessage'), 'Plan marked as completed!', 'success');
+    }
 }
 
-function moveToBacklog(id) {
-    const index = upcomingPlans.findIndex(plan => plan.id === id);
-    if (index === -1) return;
-
-    const [planToBacklog] = upcomingPlans.splice(index, 1);
-    const reason = prompt('Reason for backlog:');
-    if (reason !== null) { // If user didn't cancel prompt
-        backlogs.push({ ...planToBacklog, backlogDate: new Date().toISOString().split('T')[0], reason: reason || 'No reason specified' });
+function markPlanBacklog(id) {
+    const planIndex = upcomingPlans.findIndex(p => p.id === id);
+    if (planIndex > -1) {
+        const plan = upcomingPlans[planIndex];
+        plan.isBacklog = true;
+        plan.backlogDate = new Date().toISOString().split('T')[0];
+        backlogs.push({ // Add to backlogs
+            id: generateId(),
+            date: plan.backlogDate,
+            subject: plan.subject,
+            book: plan.book, // Store book
+            chapter: plan.chapter,
+            reason: 'Moved from Upcoming Plans', // Default reason
+            originalPlanId: plan.id
+        });
+        upcomingPlans.splice(planIndex, 1); // Remove from upcoming plans
         saveData();
         renderUpcomingPlans();
         renderBacklogs();
-        updateDailyRoutineSummary(); // Update pending backlogs count
-    } else {
-        // Re-add the plan if user canceled the prompt
-        upcomingPlans.splice(index, 0, planToBacklog);
+        updateDailyRoutineSummary();
+        displayMessage(document.getElementById('planFormMessage'), 'Plan moved to backlogs!', 'info');
     }
-}
-
-function editPlan(id) {
-    const plan = upcomingPlans.find(p => p.id === id);
-    if (!plan) return;
-
-    planDateInput.value = plan.date;
-    planSubjectSelect.value = plan.subject;
-    planChapterInput.value = plan.chapter;
-    planStudyTypeSelect.value = plan.studyType;
-    planEstimatedTimeInput.value = plan.estimatedTime;
-
-    addPlanBtn.textContent = 'Update Plan';
-    addPlanBtn.onclick = () => updatePlan(id);
-}
-
-function updatePlan(id) {
-    const index = upcomingPlans.findIndex(p => p.id === id);
-    if (index === -1) return;
-
-    const date = planDateInput.value;
-    const subject = planSubjectSelect.value;
-    const chapter = planChapterInput.value.trim();
-    const studyType = planStudyTypeSelect.value;
-    const estimatedTime = planEstimatedTimeInput.value;
-
-    if (!date || !subject || !chapter || !studyType || !estimatedTime) {
-        alert('Please fill in all upcoming plan fields.');
-        return;
-    }
-
-    upcomingPlans[index] = {
-        id: id,
-        date,
-        subject,
-        chapter,
-        studyType,
-        estimatedTime
-    };
-
-    saveData();
-    renderUpcomingPlans();
-
-    addPlanBtn.textContent = 'Add Plan';
-    addPlanBtn.onclick = addPlan; // Reset button
-    // Clear form
-    planDateInput.value = new Date().toISOString().split('T')[0];
-    planSubjectSelect.value = '';
-    planChapterInput.value = '';
-    planStudyTypeSelect.value = '';
-    planEstimatedTimeInput.value = '';
 }
 
 function deletePlan(id) {
@@ -1058,6 +887,7 @@ function deletePlan(id) {
         upcomingPlans = upcomingPlans.filter(plan => plan.id !== id);
         saveData();
         renderUpcomingPlans();
+        displayMessage(document.getElementById('planFormMessage'), 'Plan deleted successfully!', 'success');
     }
 }
 
@@ -1065,94 +895,123 @@ function deletePlan(id) {
 function renderBacklogs() {
     backlogsTableBody.innerHTML = '';
     if (backlogs.length === 0) {
-        backlogsTableBody.innerHTML = '<tr><td colspan="5" class="py-3 px-6 text-center">No backlogs.</td></tr>';
+        backlogsTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No backlogs.</td></tr>';
         return;
     }
 
-    const sortedBacklogs = [...backlogs].sort((a, b) => new Date(a.backlogDate) - new Date(b.backlogDate));
-
-    sortedBacklogs.forEach(item => {
+    backlogs.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(item => {
         const row = backlogsTableBody.insertRow();
+        row.className = 'border-b border-gray-200 hover:bg-gray-100 bg-red-50 text-red-700';
         row.innerHTML = `
-            <td class="py-3 px-6 whitespace-nowrap">${item.backlogDate}</td>
-            <td class="py-3 px-6 capitalize">${item.subject}</td>
-            <td class="py-3 px-6">${item.chapter}</td>
-            <td class="py-3 px-6 text-sm">${item.reason || 'N/A'}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${item.date}</td>
+            <td class="py-3 px-6 text-left">${item.subject.charAt(0).toUpperCase() + item.subject.slice(1)}</td>
+            <td class="py-3 px-6 text-left">${item.book}</td>
+            <td class="py-3 px-6 text-left">${item.chapter}</td>
+            <td class="py-3 px-6 text-left">${item.reason || 'N/A'}</td>
             <td class="py-3 px-6 text-center">
-                <button data-id="${item.id}" class="resolve-backlog-btn text-green-500 hover:text-green-700 mr-2">Resolve</button>
-                <button data-id="${item.id}" class="delete-backlog-btn text-red-500 hover:text-red-700">Delete</button>
+                <button onclick="resolveBacklog('${item.id}')" class="text-green-600 hover:text-green-800 mr-2">Resolve</button>
+                <button onclick="deleteBacklog('${item.id}')" class="text-red-600 hover:text-red-800">Delete</button>
             </td>
         `;
-    });
-
-    document.querySelectorAll('.resolve-backlog-btn').forEach(button => {
-        button.addEventListener('click', (e) => resolveBacklog(e.target.dataset.id));
-    });
-    document.querySelectorAll('.delete-backlog-btn').forEach(button => {
-        button.addEventListener('click', (e) => deleteBacklog(e.target.dataset.id));
     });
 }
 
 function resolveBacklog(id) {
-    const index = backlogs.findIndex(item => item.id === id);
-    if (index === -1) return;
-
-    const [resolvedItem] = backlogs.splice(index, 1);
-    // Optionally move to completed tasks or simply remove
-    completedTasks.push({ ...resolvedItem, completionDate: new Date().toISOString().split('T')[0], status: 'Resolved from Backlog' });
-    saveData();
-    renderBacklogs();
-    renderCompletedTasks();
-    updateDailyRoutineSummary(); // Update pending backlogs count
+    const backlogIndex = backlogs.findIndex(b => b.id === id);
+    if (backlogIndex > -1) {
+        const resolvedBacklog = backlogs[backlogIndex];
+        // Optionally, add to completed tasks or a 'resolved' list
+        completedTasks.push({
+            id: generateId(),
+            date: new Date().toISOString().split('T')[0],
+            subject: resolvedBacklog.subject,
+            book: resolvedBacklog.book, // Store book
+            chapter: resolvedBacklog.chapter,
+            topics: [], // Not tracked here
+            type: 'Backlog Resolution',
+            mcqs: 0,
+            time: 'N/A',
+            originalBacklogId: resolvedBacklog.id
+        });
+        backlogs.splice(backlogIndex, 1);
+        saveData();
+        renderBacklogs();
+        renderCompletedTasks();
+        updateDailyRoutineSummary();
+        displayMessage(document.getElementById('backlogsFormMessage'), 'Backlog resolved!', 'success');
+    }
 }
 
 function deleteBacklog(id) {
-    if (confirm('Are you sure you want to delete this backlog item?')) {
+    if (confirm('Are you sure you want to delete this backlog?')) {
         backlogs = backlogs.filter(item => item.id !== id);
         saveData();
         renderBacklogs();
-        updateDailyRoutineSummary(); // Update pending backlogs count
+        updateDailyRoutineSummary();
+        displayMessage(document.getElementById('backlogsFormMessage'), 'Backlog deleted successfully!', 'success');
     }
 }
+
 
 // --- Completed Tasks Functions ---
 function renderCompletedTasks() {
     completedTableBody.innerHTML = '';
     if (completedTasks.length === 0) {
-        completedTableBody.innerHTML = '<tr><td colspan="6" class="py-3 px-6 text-center">No completed tasks.</td></tr>';
+        completedTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No completed tasks yet.</td></tr>';
         return;
     }
 
-    const sortedCompleted = [...completedTasks].sort((a, b) => new Date(b.completionDate || b.date) - new Date(a.completionDate || a.date));
-
-    sortedCompleted.forEach(task => {
+    completedTasks.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(task => {
         const row = completedTableBody.insertRow();
-        const chapterOrTopics = task.topics && task.topics.length > 0 ? task.topics.join(', ') : task.chapter;
-        const mcqDetails = task.mcqsPracticed !== undefined ? `Book: ${task.mcqsPracticed} | Other: ${task.customMCQsCount || 0}` : 'N/A';
-        const timeDetails = task.timeSpent !== undefined ? task.timeSpent : 'N/A';
-
+        row.className = 'border-b border-gray-200 hover:bg-gray-100 bg-green-50 text-green-700';
         row.innerHTML = `
-            <td class="py-3 px-6 whitespace-nowrap">${task.completionDate || task.date}</td>
-            <td class="py-3 px-6 capitalize">${task.subject || 'N/A'}</td>
-            <td class="py-3 px-6">${chapterOrTopics}</td>
-            <td class="py-3 px-6">${task.studyTypes ? task.studyTypes.join(', ') : (task.studyType || 'N/A')}</td>
-            <td class="py-3 px-6">${mcqDetails}</td>
-            <td class="py-3 px-6">${timeDetails}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${task.date}</td>
+            <td class="py-3 px-6 text-left">${task.subject.charAt(0).toUpperCase() + task.subject.slice(1)}</td>
+            <td class="py-3 px-6 text-left">${task.book}</td>
+            <td class="py-3 px-6 text-left">${task.chapter} ${task.topics && task.topics.length > 0 ? `(${task.topics.join(', ')})` : ''}</td>
+            <td class="py-3 px-6 text-left">${task.type}</td>
+            <td class="py-3 px-6 text-center">${task.mcqs || 'N/A'}</td>
+            <td class="py-3 px-6 text-center">${task.time || 'N/A'}</td>
+            <td class="py-3 px-6 text-center">
+                <button onclick="deleteCompletedTask('${task.id}')" class="text-red-600 hover:text-red-800">Delete</button>
+            </td>
         `;
     });
+}
+
+function deleteCompletedTask(id) {
+    if (confirm('Are you sure you want to delete this completed task?')) {
+        completedTasks = completedTasks.filter(task => task.id !== id);
+        saveData();
+        renderCompletedTasks();
+        displayMessage(document.getElementById('completedTasksMessage'), 'Completed task deleted successfully!', 'success');
+    }
 }
 
 
 // --- Goals Functions ---
 function addChapterGoal() {
     const subject = goalSubjectSelect.value;
-    const book = goalBookInput.value.trim();
-    const chapter = goalChapterNameInput.value.trim();
-    const topics = goalTopicsInput.value.split(',').map(t => t.trim()).filter(t => t !== '');
+    const book = goalBookSelect.value;
+    const chapter = goalChapterSelect.value;
+    const selectedTopics = Array.from(goalTopicsChecklist.querySelectorAll('input[name="goalTopic"]:checked'))
+                               .map(checkbox => checkbox.value);
     const dueDate = goalDueDateInput.value;
 
-    if (!subject || !chapter || !dueDate) {
-        alert('Please fill in Subject, Chapter Name, and Due Date for chapter goals.');
+    if (!subject || !book || !chapter || !dueDate) {
+        displayMessage(document.getElementById('chapterGoalMessage'), 'Please select Subject, Book, Chapter, and Due Date.', 'error');
+        return;
+    }
+
+    // Check if a goal for this specific chapter (and book) already exists
+    const existingGoal = chapterGoals.find(g =>
+        g.subject === subject &&
+        g.book === book &&
+        g.chapter === chapter
+    );
+
+    if (existingGoal) {
+        displayMessage(document.getElementById('chapterGoalMessage'), 'Goal for this Chapter in this Book already exists. You can edit it from the table.', 'error');
         return;
     }
 
@@ -1161,125 +1020,110 @@ function addChapterGoal() {
         subject,
         book,
         chapter,
-        topics,
+        topics: selectedTopics, // Store selected topics for this goal
         dueDate,
-        progress: 0 // 0-100 percentage
+        completionStatus: {
+            topics: {}, // To track individual topic completion
+            chapter: 'Not Started' // Not Started, In Progress, Completed
+        }
     };
-
     chapterGoals.push(newGoal);
     saveData();
     renderChapterGoals();
-    populateLogBookDropdown(); // Update daily log book dropdown with new goal books
-    populateMCQSourceDropdown(); // Update MCQ source dropdown
-    drawAllCharts(); // Update charts (goal completion)
+    drawAllCharts(); // Update goal completion chart
+    displayMessage(document.getElementById('chapterGoalMessage'), 'Chapter goal added successfully!', 'success');
 
     // Clear form
     goalSubjectSelect.value = '';
-    goalBookInput.value = '';
-    goalChapterNameInput.value = '';
-    goalTopicsInput.value = '';
+    goalBookSelect.value = '';
+    goalChapterSelect.value = '';
+    goalTopicsChecklist.innerHTML = '';
+    goalTopicsContainer.classList.add('hidden');
     goalDueDateInput.value = '';
-    populateSubjectDropdowns(); // Reset subject dropdown
 }
 
 function renderChapterGoals() {
     chapterGoalsTableBody.innerHTML = '';
     if (chapterGoals.length === 0) {
-        chapterGoalsTableBody.innerHTML = '<tr><td colspan="7" class="py-3 px-6 text-center">No chapter goals set yet.</td></tr>';
+        chapterGoalsTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No chapter goals set yet.</td></tr>';
         return;
     }
 
-    const sortedGoals = [...chapterGoals].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    chapterGoals.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)).forEach(goal => {
+        const totalTopics = getTopicsForChapter(goal.subject, goal.book, goal.chapter).length;
+        const completedCount = Object.values(goal.completionStatus.topics).filter(status => status).length;
+        const completionPercentage = totalTopics > 0 ? ((completedCount / totalTopics) * 100).toFixed(0) : 0;
 
-    sortedGoals.forEach(goal => {
-        const topicsCoveredCount = (completedTopics[goal.subject] && completedTopics[goal.subject][goal.chapter]) ?
-                                   completedTopics[goal.subject][goal.chapter].length : 0;
-        const totalGoalTopics = goal.topics.length > 0 ? goal.topics.length : 1; // If no specific topics, assume 1 unit for chapter
-        const currentProgress = Math.round((topicsCoveredCount / totalGoalTopics) * 100);
-        goal.progress = Math.min(currentProgress, 100); // Ensure progress doesn't exceed 100%
+        let statusClass = '';
+        if (completionPercentage === 100) {
+            statusClass = 'bg-green-100 text-green-800';
+        } else if (completionPercentage > 0) {
+            statusClass = 'bg-yellow-100 text-yellow-800';
+        } else if (new Date(goal.dueDate) < new Date().setHours(0,0,0,0)) { // Past due date
+            statusClass = 'bg-red-100 text-red-800';
+        } else {
+            statusClass = 'bg-blue-100 text-blue-800';
+        }
 
         const row = chapterGoalsTableBody.insertRow();
+        row.className = `border-b border-gray-200 hover:bg-gray-100 ${statusClass}`;
         row.innerHTML = `
-            <td class="py-3 px-6 capitalize">${goal.subject}</td>
-            <td class="py-3 px-6">${goal.book || 'N/A'}</td>
-            <td class="py-3 px-6">${goal.chapter}</td>
-            <td class="py-3 px-6 text-sm">${goal.topics.join(', ') || 'N/A'}</td>
-            <td class="py-3 px-6 whitespace-nowrap">${goal.dueDate}</td>
-            <td class="py-3 px-6">
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${goal.progress}%"></div>
-                </div>
-                <span class="text-xs text-gray-500">${goal.progress}% completed</span>
-            </td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${goal.subject.charAt(0).toUpperCase() + goal.subject.slice(1)}</td>
+            <td class="py-3 px-6 text-left">${goal.book}</td>
+            <td class="py-3 px-6 text-left">${goal.chapter}</td>
+            <td class="py-3 px-6 text-left">${goal.topics.join(', ') || 'All Topics'}</td>
+            <td class="py-3 px-6 text-left whitespace-nowrap">${goal.dueDate}</td>
+            <td class="py-3 px-6 text-center font-semibold">${completionPercentage}%</td>
             <td class="py-3 px-6 text-center">
-                <button data-id="${goal.id}" class="edit-goal-btn text-blue-500 hover:text-blue-700 mr-2">Edit</button>
-                <button data-id="${goal.id}" class="delete-goal-btn text-red-500 hover:text-red-700">Delete</button>
+                <button onclick="editChapterGoal('${goal.id}')" class="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
+                <button onclick="deleteChapterGoal('${goal.id}')" class="text-red-600 hover:text-red-800">Delete</button>
             </td>
         `;
     });
-
-    document.querySelectorAll('.edit-goal-btn').forEach(button => {
-        button.addEventListener('click', (e) => editChapterGoal(e.target.dataset.id));
-    });
-    document.querySelectorAll('.delete-goal-btn').forEach(button => {
-        button.addEventListener('click', (e) => deleteChapterGoal(e.target.dataset.id));
-    });
 }
+
+// Helper to get topics from ALL_SUBJECT_DATA based on new structure
+function getTopicsForChapter(subject, bookName, chapterName) {
+    if (ALL_SUBJECT_DATA[subject]) {
+        const book = ALL_SUBJECT_DATA[subject].find(b => b.name === bookName);
+        if (book && book.chapters) {
+            const chapter = book.chapters.find(c => c.name === chapterName);
+            if (chapter && chapter.topics && chapter.topics[0] !== "General Topics") {
+                return chapter.topics;
+            }
+        }
+    }
+    return [];
+}
+
 
 function editChapterGoal(id) {
     const goal = chapterGoals.find(g => g.id === id);
-    if (!goal) return;
+    if (goal) {
+        goalSubjectSelect.value = goal.subject;
+        populateGoalBookDropdown();
+        setTimeout(() => {
+            goalBookSelect.value = goal.book;
+            populateGoalChapterDropdown();
+            setTimeout(() => {
+                goalChapterSelect.value = goal.chapter;
+                populateGoalTopicsChecklist();
+                setTimeout(() => {
+                    goal.topics.forEach(topic => {
+                        const checkbox = goalTopicsChecklist.querySelector(`input[value="${topic}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }, 50);
+            }, 50);
+        }, 50);
+        goalDueDateInput.value = goal.dueDate;
 
-    goalSubjectSelect.value = goal.subject;
-    goalBookInput.value = goal.book;
-    goalChapterNameInput.value = goal.chapter;
-    goalTopicsInput.value = goal.topics.join(', ');
-    goalDueDateInput.value = goal.dueDate;
-
-    addChapterGoalBtn.textContent = 'Update Chapter Goal';
-    addChapterGoalBtn.onclick = () => updateChapterGoal(id);
-}
-
-function updateChapterGoal(id) {
-    const index = chapterGoals.findIndex(g => g.id === id);
-    if (index === -1) return;
-
-    const subject = goalSubjectSelect.value;
-    const book = goalBookInput.value.trim();
-    const chapter = goalChapterNameInput.value.trim();
-    const topics = goalTopicsInput.value.split(',').map(t => t.trim()).filter(t => t !== '');
-    const dueDate = goalDueDateInput.value;
-
-    if (!subject || !chapter || !dueDate) {
-        alert('Please fill in Subject, Chapter Name, and Due Date for chapter goals.');
-        return;
+        // Remove the original entry, it will be re-added on save
+        chapterGoals = chapterGoals.filter(g => g.id !== id);
+        saveData();
+        renderChapterGoals();
+        displayMessage(document.getElementById('chapterGoalMessage'), 'Goal loaded for editing.', 'info');
     }
-
-    chapterGoals[index] = {
-        id: id,
-        subject,
-        book,
-        chapter,
-        topics,
-        dueDate,
-        progress: chapterGoals[index].progress // Keep existing progress or recalculate
-    };
-
-    saveData();
-    renderChapterGoals();
-    populateLogBookDropdown();
-    populateMCQSourceDropdown();
-    drawAllCharts();
-
-    addChapterGoalBtn.textContent = 'Add Chapter Goal';
-    addChapterGoalBtn.onclick = addChapterGoal; // Reset button
-    // Clear form
-    goalSubjectSelect.value = '';
-    goalBookInput.value = '';
-    goalChapterNameInput.value = '';
-    goalTopicsInput.value = '';
-    goalDueDateInput.value = '';
-    populateSubjectDropdowns();
 }
 
 function deleteChapterGoal(id) {
@@ -1287,458 +1131,452 @@ function deleteChapterGoal(id) {
         chapterGoals = chapterGoals.filter(goal => goal.id !== id);
         saveData();
         renderChapterGoals();
-        populateLogBookDropdown(); // Update daily log book dropdown
-        populateMCQSourceDropdown(); // Update MCQ source dropdown
-        drawAllCharts();
+        drawAllCharts(); // Update chart
+        displayMessage(document.getElementById('chapterGoalMessage'), 'Chapter goal deleted successfully!', 'success');
     }
 }
 
 function setMCQGoals() {
-    const physics = parseInt(mcqGoalPhysicsInput.value) || 0;
-    const chemistry = parseInt(mcqGoalChemistryInput.value) || 0;
-    const biology = parseInt(mcqGoalBiologyInput.value) || 0;
+    const physicsQuota = parseInt(mcqGoalPhysicsInput.value);
+    const chemistryQuota = parseInt(mcqGoalChemistryInput.value);
+    const biologyQuota = parseInt(mcqGoalBiologyInput.value);
 
-    mcqQuotas = { physics, chemistry, biology };
+    if (isNaN(physicsQuota) || isNaN(chemistryQuota) || isNaN(biologyQuota)) {
+        displayMessage(document.getElementById('mcqGoalMessage'), 'Please enter valid numbers for all MCQ quotas.', 'error');
+        return;
+    }
+
+    mcqQuotas = { physics: physicsQuota, chemistry: chemistryQuota, biology: biologyQuota };
     saveData();
     updateMCQQuotaDisplays();
     updateMCQQuotaCharts();
-    alert('Daily MCQ quotas updated!');
+    displayMessage(document.getElementById('mcqGoalMessage'), 'Daily MCQ quotas set successfully!', 'success');
 }
 
 function updateMCQQuotaDisplays() {
     displayPhysicsQuota.textContent = mcqQuotas.physics;
     displayChemistryQuota.textContent = mcqQuotas.chemistry;
     displayBiologyQuota.textContent = mcqQuotas.biology;
-
-    mcqGoalPhysicsInput.value = mcqQuotas.physics;
-    mcqGoalChemistryInput.value = mcqQuotas.chemistry;
-    mcqGoalBiologyInput.value = mcqQuotas.biology;
 }
 
 function setOverallGoal() {
-    const score = parseInt(overallGoalScoreInput.value);
-    const date = overallGoalDueDateInput.value;
+    const targetScore = parseInt(overallGoalScoreInput.value);
+    const targetDate = overallGoalDueDateInput.value;
 
-    if (isNaN(score) || !date) {
-        alert('Please enter a valid target score and date.');
+    if (isNaN(targetScore) || !targetDate) {
+        displayMessage(document.getElementById('overallGoalMessage'), 'Please enter a valid target score and date.', 'error');
         return;
     }
 
-    overallGoal = { score, date };
+    overallGoal = { score: targetScore, dueDate: targetDate };
     saveData();
     updateOverallGoalDisplay();
-    alert('Overall goal set!');
+    displayMessage(document.getElementById('overallGoalMessage'), 'Overall goal set successfully!', 'success');
 }
 
 function updateOverallGoalDisplay() {
     if (overallGoal) {
         displayOverallTargetScore.textContent = overallGoal.score;
-        displayOverallTargetDate.textContent = overallGoal.date;
-        overallGoalScoreInput.value = overallGoal.score;
-        overallGoalDueDateInput.value = overallGoal.date;
+        displayOverallTargetDate.textContent = overallGoal.dueDate;
     } else {
         displayOverallTargetScore.textContent = 'N/A';
         displayOverallTargetDate.textContent = 'N/A';
-        overallGoalScoreInput.value = '';
-        overallGoalDueDateInput.value = '';
     }
 }
 
-function trackCompletedTopics(subject, chapter, topicsCompleted) {
-    if (!completedTopics[subject]) {
-        completedTopics[subject] = {};
-    }
-    if (!completedTopics[subject][chapter]) {
-        completedTopics[subject][chapter] = [];
-    }
 
-    topicsCompleted.forEach(topic => {
-        if (!completedTopics[subject][chapter].includes(topic)) {
-            completedTopics[subject][chapter].push(topic);
-        }
-    });
-    saveData();
-    renderChapterGoals(); // Re-render goals to update progress bars
+// --- Charting Functions (using Chart.js) ---
+let chartInstances = {}; // Store chart instances to destroy them before re-drawing
+
+function initCharts() {
+    // Ensure canvas elements exist before initializing charts
+    if (testScoreChartCanvas) {
+        const ctx = testScoreChartCanvas.getContext('2d');
+        if (chartInstances.testScoreChart) chartInstances.testScoreChart.destroy();
+        chartInstances.testScoreChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 720 }
+                },
+                plugins: { legend: { display: true } }
+            }
+        });
+    }
+    if (subjectAverageChartCanvas) {
+        const ctx = subjectAverageChartCanvas.getContext('2d');
+        if (chartInstances.subjectAverageChart) chartInstances.subjectAverageChart.destroy();
+        chartInstances.subjectAverageChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Physics', 'Chemistry', 'Biology'], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 180 }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+    if (timeSpentChartCanvas) {
+        const ctx = timeSpentChartCanvas.getContext('2d');
+        if (chartInstances.timeSpentChart) chartInstances.timeSpentChart.destroy();
+        chartInstances.timeSpentChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+    if (mcqsPracticedChartCanvas) {
+        const ctx = mcqsPracticedChartCanvas.getContext('2d');
+        if (chartInstances.mcqsPracticedChart) chartInstances.mcqsPracticedChart.destroy();
+        chartInstances.mcqsPracticedChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+    if (goalCompletionChartCanvas) {
+        const ctx = goalCompletionChartCanvas.getContext('2d');
+        if (chartInstances.goalCompletionChart) chartInstances.goalCompletionChart.destroy();
+        chartInstances.goalCompletionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: ['Completed', 'In Progress', 'Not Started'], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    title: { display: true, text: 'Overall Chapter Goal Completion' }
+                }
+            }
+        });
+    }
+    if (topicCompletionChartCanvas) {
+        const ctx = topicCompletionChartCanvas.getContext('2d');
+        if (chartInstances.topicCompletionChart) chartInstances.topicCompletionChart.destroy();
+        chartInstances.topicCompletionChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [] },
+            options: {
+                indexAxis: 'y', // Make it a horizontal bar chart
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, max: 100, title: { display: true, text: 'Completion %' } },
+                    y: { title: { display: true, text: 'Chapter' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+}
+
+function drawAllCharts() {
+    drawTestScoreChart();
+    drawSubjectAverageChart();
+    drawTimeSpentChart();
+    drawMCQsPracticedChart();
     drawGoalCompletionChart();
     drawTopicCompletionChart();
 }
 
-
-// --- Analytics & Graphs Functions (Chart.js) ---
-function initCharts() {
-    // Destroy existing chart instances before re-initializing
-    if (testScoreChart) testScoreChart.destroy();
-    if (subjectAverageChart) subjectAverageChart.destroy();
-    if (timeSpentChart) timeSpentChart.destroy();
-    if (mcqsPracticedChart) mcqsPracticedChart.destroy();
-    if (goalCompletionChart) goalCompletionChart.destroy();
-    if (topicCompletionChart) topicCompletionChart.destroy();
-
-    // Ensure canvas elements exist and are ready
-    if (!testScoreChartCanvas) return; // Exit if canvases are not available (e.g., section not loaded)
-
-    testScoreChart = new Chart(testScoreChartCanvas.getContext('2d'), { type: 'line', data: {}, options: {} });
-    subjectAverageChart = new Chart(subjectAverageChartCanvas.getContext('2d'), { type: 'bar', data: {}, options: {} });
-    timeSpentChart = new Chart(timeSpentChartCanvas.getContext('2d'), { type: 'bar', data: {}, options: {} });
-    mcqsPracticedChart = new Chart(mcqsPracticedChartCanvas.getContext('2d'), { type: 'bar', data: {}, options: {} });
-    goalCompletionChart = new Chart(goalCompletionChartCanvas.getContext('2d'), { type: 'pie', data: {}, options: {} });
-    topicCompletionChart = new Chart(topicCompletionChartCanvas.getContext('2d'), { type: 'bar', data: {}, options: {} });
-}
-
-function drawAllCharts() {
-    // Only draw if the analytics section is visible
-    if (!document.getElementById('analyticsGraphsContent').classList.contains('hidden')) {
-        initCharts(); // Ensure charts are initialized/re-initialized
-        drawTestScoreChart();
-        drawSubjectAverageChart();
-        drawTimeSpentChart();
-        drawMCQsPracticedChart();
-        drawGoalCompletionChart();
-        drawTopicCompletionChart();
-    }
-}
-
 function drawTestScoreChart() {
-    const dates = testResults.map(r => r.date).sort();
-    const totals = testResults.map(r => r.total);
-    const physicsScores = testResults.map(r => r.physics);
-    const chemistryScores = testResults.map(r => r.chemistry);
-    const biologyScores = testResults.map(r => r.biology);
+    const dates = [...new Set(testResults.map(t => t.date))].sort();
+    const totalScores = dates.map(date => {
+        const testsOnDate = testResults.filter(t => t.date === date);
+        const sumScores = testsOnDate.reduce((sum, t) => sum + t.total, 0);
+        return sumScores / testsOnDate.length; // Average if multiple tests on same day
+    });
 
-    testScoreChart.data = {
-        labels: dates,
-        datasets: [
-            {
-                label: 'Total Score',
-                data: totals,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1,
-                fill: false
-            },
-            {
-                label: 'Physics Score',
-                data: physicsScores,
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1,
-                fill: false
-            },
-            {
-                label: 'Chemistry Score',
-                data: chemistryScores,
-                borderColor: 'rgb(54, 162, 235)',
-                tension: 0.1,
-                fill: false
-            },
-            {
-                label: 'Biology Score',
-                data: biologyScores,
-                borderColor: 'rgb(255, 205, 86)',
-                tension: 0.1,
-                fill: false
-            }
-        ]
-    };
-    testScoreChart.options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, max: 720 }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Test Score Progression Over Time'
-            }
-        }
-    };
-    testScoreChart.update();
+    if (chartInstances.testScoreChart) {
+        chartInstances.testScoreChart.data.labels = dates;
+        chartInstances.testScoreChart.data.datasets = [{
+            label: 'Average Score',
+            data: totalScores,
+            borderColor: '#4c51bf',
+            backgroundColor: '#667eea',
+            fill: false,
+            tension: 0.1
+        }];
+        chartInstances.testScoreChart.update();
+    }
 }
 
 function drawSubjectAverageChart() {
-    const subjectScores = { physics: [], chemistry: [], biology: [] };
-    testResults.forEach(r => {
-        subjectScores.physics.push(r.physics);
-        subjectScores.chemistry.push(r.chemistry);
-        subjectScores.biology.push(r.biology);
-    });
+    const physicsScores = testResults.map(t => t.physics);
+    const chemistryScores = testResults.map(t => t.chemistry);
+    const biologyScores = testResults.map(t => t.biology);
 
-    const average = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    const avgPhysics = physicsScores.length ? (physicsScores.reduce((a, b) => a + b, 0) / physicsScores.length).toFixed(1) : 0;
+    const avgChemistry = chemistryScores.length ? (chemistryScores.reduce((a, b) => a + b, 0) / chemistryScores.length).toFixed(1) : 0;
+    const avgBiology = biologyScores.length ? (biologyScores.reduce((a, b) => a + b, 0) / biologyScores.length).toFixed(1) : 0;
 
-    const avgPhysics = average(subjectScores.physics);
-    const avgChemistry = average(subjectScores.chemistry);
-    const avgBiology = average(subjectScores.biology);
-
-    subjectAverageChart.data = {
-        labels: ['Physics', 'Chemistry', 'Biology'],
-        datasets: [{
+    if (chartInstances.subjectAverageChart) {
+        chartInstances.subjectAverageChart.data.datasets = [{
             label: 'Average Score',
             data: [avgPhysics, avgChemistry, avgBiology],
-            backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 205, 86, 0.6)'],
-            borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 205, 86, 1)'],
+            backgroundColor: ['#667eea', '#81e6d9', '#a78bfa'],
+            borderColor: ['#4c51bf', '#38b2ac', '#8b5cf6'],
             borderWidth: 1
-        }]
-    };
-    subjectAverageChart.options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, max: 360 } // Max for Biology, others out of 180, scale for highest
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Subject-wise Average Scores'
-            }
-        }
-    };
-    subjectAverageChart.update();
+        }];
+        chartInstances.subjectAverageChart.update();
+    }
 }
 
 function drawTimeSpentChart() {
-    const dailyTime = {}; // { date: totalMinutes }
+    const dailyTime = {};
     dailyLogs.forEach(log => {
-        const [hours, minutes] = log.timeSpent.split(':').map(Number);
+        const date = log.date;
+        const [hours, minutes] = (log.timeSpent || '0h 0m').split('h ').map(Number);
         const totalMinutes = (hours * 60) + minutes;
-        dailyTime[log.date] = (dailyTime[log.date] || 0) + totalMinutes;
+        dailyTime[date] = (dailyTime[date] || 0) + totalMinutes;
     });
 
-    const sortedDates = Object.keys(dailyTime).sort();
-    const dataValues = sortedDates.map(date => dailyTime[date] / 60); // Convert back to hours for display
+    const dates = Object.keys(dailyTime).sort();
+    const timeInHours = dates.map(date => (dailyTime[date] / 60).toFixed(2));
 
-    timeSpentChart.data = {
-        labels: sortedDates,
-        datasets: [{
-            label: 'Hours Studied',
-            data: dataValues,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+    if (chartInstances.timeSpentChart) {
+        chartInstances.timeSpentChart.data.labels = dates;
+        chartInstances.timeSpentChart.data.datasets = [{
+            label: 'Time Spent (Hours)',
+            data: timeInHours,
+            backgroundColor: '#4299e1',
+            borderColor: '#3182ce',
             borderWidth: 1
-        }]
-    };
-    timeSpentChart.options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Daily Study Time'
-            }
-        }
-    };
-    timeSpentChart.update();
+        }];
+        chartInstances.timeSpentChart.update();
+    }
 }
 
 function drawMCQsPracticedChart() {
-    const dailyMCQs = {}; // { date: totalMCQs }
+    const dailyMCQs = {};
     dailyLogs.forEach(log => {
-        const totalMCQs = (log.mcqsPracticed || 0) + (log.customMCQsCount || 0);
-        dailyMCQs[log.date] = (dailyMCQs[log.date] || 0) + totalMCQs;
+        const date = log.date;
+        dailyMCQs[date] = (dailyMCQs[date] || 0) + (log.mcqsPracticed || 0);
     });
 
-    const sortedDates = Object.keys(dailyMCQs).sort();
-    const dataValues = sortedDates.map(date => dailyMCQs[date]);
+    const dates = Object.keys(dailyMCQs).sort();
+    const mcqCounts = dates.map(date => dailyMCQs[date]);
 
-    mcqsPracticedChart.data = {
-        labels: sortedDates,
-        datasets: [{
+    if (chartInstances.mcqsPracticedChart) {
+        chartInstances.mcqsPracticedChart.data.labels = dates;
+        chartInstances.mcqsPracticedChart.data.datasets = [{
             label: 'MCQs Practiced',
-            data: dataValues,
-            backgroundColor: 'rgba(153, 102, 255, 0.6)',
-            borderColor: 'rgba(153, 102, 255, 1)',
+            data: mcqCounts,
+            backgroundColor: '#48bb78',
+            borderColor: '#38a169',
             borderWidth: 1
-        }]
-    };
-    mcqsPracticedChart.options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Number of MCQs' } }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Daily MCQs Practiced'
-            }
-        }
-    };
-    mcqsPracticedChart.update();
+        }];
+        chartInstances.mcqsPracticedChart.update();
+    }
 }
-
 
 function drawGoalCompletionChart() {
-    const subjectProgress = {
-        physics: { completed: 0, total: 0 },
-        chemistry: { completed: 0, total: 0 },
-        biology: { completed: 0, total: 0 }
-    };
+    let completedGoals = 0;
+    let inProgressGoals = 0;
+    let notStartedGoals = 0;
+    let overdueGoals = 0;
 
-    // Calculate total possible topics/chapters for each subject based on ALL_SUBJECT_DATA
-    for (const subject in ALL_SUBJECT_DATA) {
-        for (const chapter in ALL_SUBJECT_DATA[subject]) {
-            const topics = ALL_SUBJECT_DATA[subject][chapter];
-            if (topics && topics.length > 0 && topics[0] !== "General Topics") {
-                subjectProgress[subject].total += topics.length;
-            } else {
-                subjectProgress[subject].total += 1; // Count chapter as 1 unit if no specific topics
+    chapterGoals.forEach(goal => {
+        const totalTopics = getTopicsForChapter(goal.subject, goal.book, goal.chapter).length;
+        const completedCount = Object.values(goal.completionStatus.topics).filter(status => status).length;
+
+        if (totalTopics === 0) { // If no topics defined, consider chapter completion status
+             if (goal.completionStatus.chapter === 'Completed') {
+                completedGoals++;
+            } else if (goal.completionStatus.chapter === 'In Progress') {
+                inProgressGoals++;
+            } else if (new Date(goal.dueDate) < new Date().setHours(0,0,0,0)) {
+                overdueGoals++; // Only mark overdue if not started/in progress
+            }
+            else {
+                notStartedGoals++;
+            }
+        } else { // If topics are defined
+            if (completedCount === totalTopics && totalTopics > 0) {
+                completedGoals++;
+            } else if (completedCount > 0 && completedCount < totalTopics) {
+                inProgressGoals++;
+            } else if (new Date(goal.dueDate) < new Date().setHours(0,0,0,0)) {
+                 overdueGoals++; // Only mark overdue if not started
+            }
+            else {
+                notStartedGoals++;
             }
         }
+    });
+
+    const data = [completedGoals, inProgressGoals, notStartedGoals, overdueGoals].filter(count => count > 0);
+    const labels = ['Completed', 'In Progress', 'Not Started', 'Overdue'].filter((_, i) => [completedGoals, inProgressGoals, notStartedGoals, overdueGoals][i] > 0);
+    const colors = ['#48bb78', '#ecc94b', '#a0aec0', '#f56565'].filter((_, i) => [completedGoals, inProgressGoals, notStartedGoals, overdueGoals][i] > 0);
+
+    if (chartInstances.goalCompletionChart) {
+        chartInstances.goalCompletionChart.data.labels = labels;
+        chartInstances.goalCompletionChart.data.datasets = [{
+            data: data,
+            backgroundColor: colors,
+            hoverOffset: 4
+        }];
+        chartInstances.goalCompletionChart.update();
     }
-
-    // Calculate completed topics/chapters based on actual completed data
-    for (const subject in completedTopics) {
-        for (const chapter in completedTopics[subject]) {
-            const completed = completedTopics[subject][chapter];
-            if (completed && completed.length > 0) {
-                subjectProgress[subject].completed += completed.length;
-            }
-        }
-    }
-
-    const labels = [];
-    const completedData = [];
-    const remainingData = [];
-    const backgroundColors = [];
-    const borderColors = [];
-
-    for (const subjectKey in subjectProgress) {
-        labels.push(subjectKey.charAt(0).toUpperCase() + subjectKey.slice(1));
-        completedData.push(subjectProgress[subjectKey].completed);
-        remainingData.push(subjectProgress[subjectKey].total - subjectProgress[subjectKey].completed);
-
-        // Assign colors
-        if (subjectKey === 'physics') {
-            backgroundColors.push('rgba(255, 99, 132, 0.7)'); // Red
-            borderColors.push('rgba(255, 99, 132, 1)');
-        } else if (subjectKey === 'chemistry') {
-            backgroundColors.push('rgba(54, 162, 235, 0.7)'); // Blue
-            borderColors.push('rgba(54, 162, 235, 1)');
-        } else if (subjectKey === 'biology') {
-            backgroundColors.push('rgba(75, 192, 192, 0.7)'); // Green
-            borderColors.push('rgba(75, 192, 192, 1)');
-        } else {
-            backgroundColors.push('rgba(200, 200, 200, 0.7)'); // Grey for others
-            borderColors.push('rgba(200, 200, 200, 1)');
-        }
-    }
-
-    goalCompletionChart.data = {
-        labels: labels,
-        datasets: [{
-            label: 'Completed Chapters/Topics',
-            data: completedData,
-            backgroundColor: backgroundColors,
-            borderColor: borderColors,
-            borderWidth: 1
-        }, {
-            label: 'Remaining Chapters/Topics',
-            data: remainingData,
-            backgroundColor: backgroundColors.map(color => color.replace('0.7', '0.2')), // Lighter shade for remaining
-            borderColor: backgroundColors.map(color => color.replace('0.7', '0.5')),
-            borderWidth: 1
-        }]
-    };
-    goalCompletionChart.options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Subject-wise Chapter/Topic Completion'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const label = context.dataset.label || '';
-                        const value = context.parsed;
-                        return `${label}: ${value} units`;
-                    }
-                }
-            }
-        }
-    };
-    goalCompletionChart.update();
 }
+
 
 function drawTopicCompletionChart() {
     const chapterLabels = [];
-    const completedCounts = [];
-    const totalCounts = [];
-    const backgroundColors = [];
+    const completionPercentages = [];
 
-    // Flatten all chapters from ALL_SUBJECT_DATA
-    for (const subjectKey in ALL_SUBJECT_DATA) {
-        for (const chapterKey in ALL_SUBJECT_DATA[subjectKey]) {
-            const topicsInChapter = ALL_SUBJECT_DATA[subjectKey][chapterKey];
-            const totalTopics = topicsInChapter.length > 0 && topicsInChapter[0] !== "General Topics" ? topicsInChapter.length : 1; // Count as 1 if no specific topics
+    chapterGoals.forEach(goal => {
+        const totalTopics = getTopicsForChapter(goal.subject, goal.book, goal.chapter).length;
+        const completedCount = Object.values(goal.completionStatus.topics).filter(status => status).length;
+        const completionPercentage = totalTopics > 0 ? ((completedCount / totalTopics) * 100) : 0;
 
-            const completedForChapter = (completedTopics[subjectKey] && completedTopics[subjectKey][chapterKey]) ?
-                                        completedTopics[subjectKey][chapterKey].length : 0;
-
-            if (totalTopics > 0) { // Only add if there's something to track
-                chapterLabels.push(`${subjectKey.charAt(0).toUpperCase()}${subjectKey.slice(1)}: ${chapterKey}`);
-                completedCounts.push(completedForChapter);
-                totalCounts.push(totalTopics);
-
-                // Assign colors based on subject
-                if (subjectKey === 'physics') {
-                    backgroundColors.push('rgba(255, 99, 132, 0.7)'); // Red
-                } else if (subjectKey === 'chemistry') {
-                    backgroundColors.push('rgba(54, 162, 235, 0.7)'); // Blue
-                } else if (subjectKey === 'biology') {
-                    backgroundColors.push('rgba(75, 192, 192, 0.7)'); // Green
-                } else {
-                    backgroundColors.push('rgba(200, 200, 200, 0.7)'); // Grey
-                }
-            }
+        // Only include if there are topics defined
+        if (totalTopics > 0 && getTopicsForChapter(goal.subject, goal.book, goal.chapter)[0] !== "General Topics") {
+            chapterLabels.push(`${goal.chapter} (${goal.book})`); // Include book in label
+            completionPercentages.push(completionPercentage);
         }
+    });
+
+    if (chartInstances.topicCompletionChart) {
+        chartInstances.topicCompletionChart.data.labels = chapterLabels;
+        chartInstances.topicCompletionChart.data.datasets = [{
+            label: 'Topic Completion %',
+            data: completionPercentages,
+            backgroundColor: completionPercentages.map(p => {
+                if (p === 100) return '#48bb78'; // Green
+                if (p > 0) return '#ecc94b';    // Yellow
+                return '#a0aec0';               // Gray
+            }),
+            borderColor: completionPercentages.map(p => {
+                if (p === 100) return '#38a169';
+                if (p > 0) return '#d69e2e';
+                return '#718096';
+            }),
+            borderWidth: 1
+        }];
+        chartInstances.topicCompletionChart.update();
     }
-
-    topicCompletionChart.data = {
-        labels: chapterLabels,
-        datasets: [{
-            label: 'Completed Topics',
-            data: completedCounts,
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
-            borderWidth: 1
-        }, {
-            label: 'Total Topics',
-            data: totalCounts,
-            backgroundColor: backgroundColors.map(color => color.replace('0.7', '0.2')), // Lighter shade for total
-            borderColor: backgroundColors.map(color => color.replace('0.7', '0.5')),
-            borderWidth: 1
-        }]
-    };
-    topicCompletionChart.options = {
-        indexAxis: 'y', // Make it a horizontal bar chart
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: { beginAtZero: true, stacked: false },
-            y: { stacked: false }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Topic Completion Rate per Chapter'
-            }
-        }
-    };
-    topicCompletionChart.update();
 }
 
 
-// --- Countdown Timer ---
+function updateMCQQuotaCharts() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayLogs = dailyLogs.filter(log => log.date === today);
+
+    const currentMCQs = { physics: 0, chemistry: 0, biology: 0 };
+    todayLogs.forEach(log => {
+        if (log.subject === 'physics') currentMCQs.physics += log.mcqsPracticed || 0;
+        if (log.subject === 'chemistry') currentMCQs.chemistry += log.mcqsPracticed || 0;
+        if (log.subject === 'biology') currentMCQs.biology += log.mcqsPracticed || 0;
+    });
+
+    const renderChart = (chart, subject, quota) => {
+        if (!chart) return; // Ensure chart instance exists
+
+        const remaining = Math.max(0, quota - currentMCQs[subject]);
+        const data = [currentMCQs[subject], remaining];
+        const labels = ['Done', 'Remaining'];
+        const colors = ['#48bb78', '#a0aec0']; // Green for done, Gray for remaining
+
+        chart.data.labels = labels;
+        chart.data.datasets = [{
+            data: data,
+            backgroundColor: colors,
+            hoverOffset: 4
+        }];
+        chart.options.plugins.title.text = `${subject.charAt(0).toUpperCase() + subject.slice(1)} Daily Quota (${currentMCQs[subject]}/${quota})`;
+        chart.update();
+    };
+
+    // Physics Chart
+    if (physicsMCQQuotaChartCanvas) {
+        const ctx = physicsMCQQuotaChartCanvas.getContext('2d');
+        if (!physicsMCQChart) {
+            physicsMCQChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: '' } // Title set dynamically
+                    }
+                }
+            });
+            chartInstances.physicsMCQQuotaChart = physicsMCQChart; // Store instance
+        }
+        renderChart(physicsMCQChart, 'physics', mcqQuotas.physics);
+    }
+
+    // Chemistry Chart
+    if (chemistryMCQQuotaChartCanvas) {
+        const ctx = chemistryMCQQuotaChartCanvas.getContext('2d');
+        if (!chemistryMCQChart) {
+            chemistryMCQChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: '' }
+                    }
+                }
+            });
+            chartInstances.chemistryMCQQuotaChart = chemistryMCQChart; // Store instance
+        }
+        renderChart(chemistryMCQChart, 'chemistry', mcqQuotas.chemistry);
+    }
+
+    // Biology Chart
+    if (biologyMCQQuotaChartCanvas) {
+        const ctx = biologyMCQQuotaChartCanvas.getContext('2d');
+        if (!biologyMCQChart) {
+            biologyMCQChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: '' }
+                    }
+                }
+            });
+            chartInstances.biologyMCQQuotaChart = biologyMCQChart; // Store instance
+        }
+        renderChart(biologyMCQChart, 'biology', mcqQuotas.biology);
+    }
+}
+
+
+// --- Countdown and Motivational Quote ---
 function updateCountdown() {
-    const neetDate = new Date('2026-05-04T09:00:00'); // Example: May 4, 2026, 9:00 AM
+    const neetDate = new Date('2026-05-04T09:00:00'); // Assuming NEET UG 2026 on May 4th
     const now = new Date();
     const timeLeft = neetDate - now;
 
     if (timeLeft <= 0) {
-        countdownElement.textContent = 'NEET UG 2026 has begun!';
+        countdownElement.textContent = "NEET UG 2026 Has Arrived!";
         return;
     }
 
@@ -1750,51 +1588,78 @@ function updateCountdown() {
     countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-
-// --- Motivational Quotes ---
 const motivationalQuotes = [
-    "Success is the sum of small efforts, repeated day in and day out.",
-    "The only way to do great work is to love what you do.",
-    "Believe you can and you're halfway there.",
-    "The future belongs to those who believe in the beauty of their dreams.",
-    "Don't watch the clock; do what it does. Keep going."
+    "\"Success is the sum of small efforts, repeated day in and day out.\"",
+    "\"The only way to do great work is to love what you do.\"",
+    "\"Believe you can and you're halfway there.\"",
+    "\"The future belongs to those who believe in the beauty of their dreams.\"",
+    "\"Don't watch the clock; do what it does. Keep going.\"",
+    "\"The harder you work for something, the greater you'll feel when you achieve it.\"",
+    "\"Strive for progress, not perfection.\"",
+    "\"Your time is limited, don't waste it living someone else's life.\"",
+    "\"The best way to predict the future is to create it.\"",
+    "\"The journey of a thousand miles begins with a single step.\""
 ];
 
 function displayRandomMotivationalQuote() {
     const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
-    motivationalQuoteElement.textContent = `"${motivationalQuotes[randomIndex]}"`;
+    motivationalQuoteElement.textContent = motivationalQuotes[randomIndex];
 }
 
-// --- Initializations and Event Listeners ---
+// --- MCQ Source Dropdown Logic ---
+function populateMCQSourceDropdown() {
+    const allCategories = dailyLogs.filter(log => log.mcqSource && log.mcqSource !== 'Other').map(log => ({ name: log.mcqSource }));
+
+    // Add default options
+    const defaultSources = [
+        { name: 'Aakash Module' },
+        { name: 'Allen Module' },
+        { name: 'FIITJEE Module' },
+        { name: 'Online Test Series' },
+        { name: 'Previous Year Questions (PYQs)' },
+        { name: 'NCERT Exemplar' }
+    ];
+
+    const uniqueCategoryNames = new Set();
+    defaultSources.forEach(source => uniqueCategoryNames.add(source.name)); // Add defaults first
+    allCategories.forEach(cat => uniqueCategoryNames.add(cat.name)); // Add from logs
+
+    logMCQSourceSelect.innerHTML = '<option value="">Select Source</option>';
+    Array.from(uniqueCategoryNames).sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        logMCQSourceSelect.appendChild(option);
+    });
+    // Add 'Other' at the end
+    const otherOption = document.createElement('option');
+    otherOption.value = 'Other';
+    otherOption.textContent = 'Other (Specify)';
+    logMCQSourceSelect.appendChild(otherOption);
+}
+
+logMCQSourceSelect.addEventListener('change', () => {
+    if (logMCQSourceSelect.value === 'Other') {
+        logCustomMCQSourceInput.classList.remove('hidden');
+        logCustomMCQsCountInput.classList.remove('hidden');
+    } else {
+        logCustomMCQSourceInput.classList.add('hidden');
+        logCustomMCQsCountInput.classList.add('hidden');
+        logCustomMCQSourceInput.value = ''; // Clear custom input when 'Other' is not selected
+        logCustomMCQsCountInput.value = '';
+    }
+});
+
+
+// --- Initial Load and Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic Auth Logic (For now, just toggle visibility)
-    loginToggleBtn.addEventListener('click', () => showAuthSection(true));
-    signupToggleBtn.addEventListener('click', () => showAuthSection(false));
-
-    // Simulate successful login for development
-    // In a real app, this would be handled by Firebase auth
-    // loginForm.addEventListener('submit', (e) => {
-    //     e.preventDefault();
-    //     const email = loginEmail.value;
-    //     const password = loginPassword.value;
-    //     if (email === 'test@example.com' && password === 'password') { // Dummy auth
-    //         displayMessage(authMessage, 'Login successful!', 'success');
-    //         showMainDashboard();
-    //     } else {
-    //         displayMessage(authMessage, 'Invalid credentials.', 'error');
-    //     }
-    // });
-    // signupForm.addEventListener('submit', (e) => {
-    //     e.preventDefault();
-    //     displayMessage(authMessage, 'Signup successful! Please login.', 'success');
-    //     showAuthSection(true); // Switch to login after signup
-    // });
-
-    // TEMPORARY: Directly show dashboard for development without login
-    showMainDashboard();
-
-    logoutBtn.addEventListener('click', () => showAuthSection(true));
-
+    // Event Listeners for Authentication
+    // (Assuming Firebase is handled externally or will be added later)
+    // loginForm.addEventListener('submit', handleLogin);
+    // signupForm.addEventListener('submit', handleSignup);
+    // loginToggleBtn.addEventListener('click', () => showAuthSection(true));
+    // signupToggleBtn.addEventListener('click', () => showAuthSection(false));
+    // logoutBtn.addEventListener('click', handleLogout);
 
     // Daily Log
     addLogEntryBtn.addEventListener('click', addLogEntry);
@@ -1817,6 +1682,20 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
     populateSubjectDropdowns(); // Populate initially
     populateMCQSourceDropdown(); // Populate MCQ source dropdown initially
+
+    // Initialize dropdowns based on potential existing data or defaults
+    // If the user logs in and there's existing data, these will re-populate
+    // with the saved values if any, otherwise they'll be blank.
+    populateLogBookDropdown();
+    populateLogChapterDropdown();
+    populateLogTopicsChecklist();
+    populateGoalBookDropdown();
+    populateGoalChapterDropdown();
+    populateGoalTopicsChecklist();
+    populatePlanBookDropdown();
+    populatePlanChapterDropdown();
+
+
     renderDailyLogEntries(); // Render for "Today" tab by default
     renderTestResults();
     renderUpcomingPlans();
